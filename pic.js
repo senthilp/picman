@@ -1,74 +1,3 @@
-var ProgressMeter = function() {
-	var d = document, 
-		get = "getElementById", // Shortcut for document.getElementById to enable compression
-		progressLayer = d[get]("progress"), // Progress layer
-		percentLayer = d[get]("percentage"), // Progress layer
-		callback, // callback variable to hold the callback function
-		progressTimer, // Object to hold the intervals
-		progressPercent = 0, // Progress counter
-		isComplete, // Flag to indicate Progress Meter complete is called
-		finalComplete = function() {			
-			callback && callback(); // Callback function if present
-			callback = null; // Reset the callback
-			progressPercent = isComplete = 0; // Reset the counter & complete state
-		};
-	
-	return {
-	    /**
-	     * Default properties of ProgressMeter
-	     * Application can override it as required
-	     *
-	     * @Object defaults
-	     * @public
-	     */	
-		defaults: {
-		    /**
-		     * Intervals to update the ProgressMeter
-		     * Default value is 50
-		     *
-		     * @int progressInterval
-		     * @public
-		     */		
-			progressInterval: 50
-		},
-		
-		start: function(progressInterval) {
-			var t = this,
-				pi = progressInterval || t.defaults.progressInterval;
-			
-			progressTimer = setInterval(function() {
-				// Update the progress counter first along with incrementing it
-				t.progress(++progressPercent);
-								
-				// If progressPercent is 90 or 100 clear the interval first
-				// If 90% and still not complete pause the meter and wait for signal
-				progressPercent == 90 && !isComplete && t.stop();
-				if(progressPercent == 100) {
-					t.stop();
-					// Call the finalComplete method
-					finalComplete();
-				}
-			}, progressInterval);
-		},
-		
-		stop: function() {
-			progressTimer && clearInterval(progressTimer);
-		},
-		
-		progress: function(percent) {
-			progressLayer.style.width = percent + "%";
-			percentLayer.innerHTML = percent + "%";
-		},
-		
-		complete: function(cb) {
-			isComplete = 1;
-			callback = cb;
-			this.stop();
-			this.start(10);
-		}
-	};
-}();
-
 var PicManager = function(){ 
 		/**
 		 * UPLOAD_RATE determines the speed in which the progree meter should run
@@ -80,7 +9,7 @@ var PicManager = function(){
 		 * Median time for an image size 4046357 bytes is 12000 milliseconds
 		 * UPLOAD_RATE = 12000 / 4046357 = 0.00297 (time / size)
 		 *
-		 * @constant _execute
+		 * @constant UPLOAD_RATE
 		 * @private
 		 */	
 	var UPLOAD_RATE = 0.00297,
@@ -102,6 +31,7 @@ var PicManager = function(){
 		overlay = d[get]("overlay"), // Overlay layer
 		zoomImageLayer = d[get]("enlarge"), // Zoom image layer
 		maskLayer = d[get]("mask"), // mask layer
+		progMeter = new ProgressMeter({progressLayer: "progress", percentLayer: "percentage"}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
 		hide = function(elem, display) { // Hides a layer 
@@ -126,6 +56,7 @@ var PicManager = function(){
 			show(errorLayer);
 		},
 		getInterval = function(size) {
+			// Getting it for the 90th percentile
 			var interval = Math.abs((size * UPLOAD_RATE)/90);
 			// If interval is less that 5ms then default it to 5ms
 			// Due to clamping successive intervals DOM_CLAMP_TIMEOUT_NESTING_LEVEL 
@@ -166,7 +97,7 @@ var PicManager = function(){
 			show(progMeterLayer);
 			
 			// Start the progess meter
-			ProgressMeter.start(getInterval(fileInfo.size));
+			progMeter.start(getInterval(fileInfo.size));
 		},
 		
 		handleResponse: function(res) {
@@ -189,7 +120,7 @@ var PicManager = function(){
 				(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
 				
 				// Complete the progress meter with the callback
-				ProgressMeter.complete(function(r) {
+				progMeter.complete(function(r) {
 					return function() {
 								PicManager.complete(r);
 							};
@@ -239,7 +170,7 @@ var PicManager = function(){
 			updateContent(imageWrapper, "");
 			
 			// Reset the Progress Meter
-			ProgressMeter.progress(0);
+			progMeter.progress(0);
 			
 			// Show add image layer
 			show(addLayer);

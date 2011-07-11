@@ -207,6 +207,7 @@
 			</form>
 		</div>
 	</div>
-	<script src="pic.js"></script>
+	<script src="progressmeter.js"></script>
+	<script src="pic.js"></script>	
 </BODY>
 </HTML>
