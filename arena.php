@@ -16,25 +16,25 @@
 				background-color: #F1F1F1;
 				border: 1px solid gainsboro;
 			}
-			#picContainer {				
+			.piccontainer {				
 				font-family: Arial,Helvetica,sans-serif;
 				font-weight: bold;
 				font-size: 12px;
 				width: 200px;
 				margin: 0 auto;
 			}
-			#picContainer a {				
+			.piccontainer a {				
 				text-decoration: none; 
 			}
 			.picholder {
 				height: 131px;
 				position: relative;
 			}
-			#add {
+			.add {
 				text-align: center;	
 				margin: 24px 0;						
 			}
-			#add span.extra {
+			.add span.extra {
 				font-size: 16px;
 			}
 			div.browse {
@@ -54,37 +54,35 @@
 				right: 0px; 
 				top: 0px;
 			}
-			#fileName {
+			.filename {
 				text-align: center;
 				color: gray;
 				font-size: 12px;
 				padding: 7px 0;
 				visibility: hidden;
 			}
-			#error {
+			.error {
 				color: red;
 				visibility: hidden;
 				height: 12px;
 			}
-			#picTop {
-			}
-			#picBottom {
+			.picbottom {
 				text-align: center;
 				margin: 5px 0;				
 			}
-			#controls {
+			.controls {
 				margin: 0 auto 1px;
 				text-align: center;
 				visibility: hidden;
 			}
-			#controls div {
+			.controls div {
 				display: inline-block;				
 			}
-			#controls div.icon-hover {
+			.controls div.icon-hover {
 				border: 1px solid white;
 				padding: 2px 0;
 			}
-			#controls div.icon-hover:hover {
+			.controls div.icon-hover:hover {
 				border-color: #A1BADF;
 			}						
 			.icons {
@@ -102,20 +100,20 @@
 			.delete {
 				background-position: -64px 0;
 			}
-			#progressMeter {
+			.progressmeter {
 				padding-top: 16px;
 				color: gray;
 				visibility: hidden;
 			}				
-			#progressMeter div{
+			.progressmeter div{
 				display: inline-block;
 			}
-			#progressMeter #progress {
+			.progressmeter .progress {
 				width: 0%;
 				height: 8px;
 				background-color: gray; 
 			}
-			#progressMeter #meter {				
+			.progressmeter .meter {				
 				height: 7px;
 				width: 148px;
 				border: 1px solid gray;
@@ -165,11 +163,11 @@
 				<div id="enlarge"></div>
 			</div>
 		</div>
-		<div id="picContainer" onmouseover="PicManager.showControls(0);" onmouseout="PicManager.hideControls(0);">
+		<div id="picContainer" class="piccontainer" onmouseover="PicManager.showControls(0);" onmouseout="PicManager.hideControls(0);">
 			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php" target="upload_target">
 				<div id="picTop">
-					<div id="error"></div>
-					<div id="controls">
+					<div id="error" class="error"></div>
+					<div id="controls" class="controls">
 						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="PicManager.zoomImage(0);">
 							<div class="icons zoom" title="Zoom"></div>
 						</div>
@@ -186,21 +184,21 @@
 				</div>
 				<div class="picholder border">
 					<div id="imageWrapper"></div>
-					<div id="fileName">Image Name</div>
-					<div id="add">
+					<div id="fileName" class="filename">Image Name</div>
+					<div id="add" class="add">
 						<a href="#"><span><span class="extra">+</span> Add a Picture</span></a>
 						<div class="browse">
 							<input type="file" name="file" id="file" class="browse" onchange="PicManager.upload(0);"/>
 						</div>				
 					</div>
-					<div id="progressMeter">
-						<div id="meter">
-							<div id="progress"></div>
+					<div id="progressMeter" class="progressmeter">
+						<div id="meter" class="meter">
+							<div id="progress" class="progress"></div>
 						</div>
-						<div id="percentage">0%</div> 
+						<div id="percentage" class="percentage">0%</div> 
 					</div>
 				</div>
-				<div id="picBottom">
+				<div id="picBottom" class="picbottom">
 					2007 Acura TSX
 				</div>
 				<iframe id="upload_target" name="upload_target" src="" style="width:0;height:0;border:0px solid #fff;"></iframe>
