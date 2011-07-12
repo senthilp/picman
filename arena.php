@@ -159,25 +159,25 @@
 	<div class="picman">	
 		<div id="overlay" class="overlay">
 			<div class="bigimage">
-				<div class="close"><a href="#" onclick="PicManager.closeOverlay(0);return false;">Close</a></div>
+				<div class="close"><a href="#" onclick="picUploader.closeOverlay();return false;">Close</a></div>
 				<div id="enlarge"></div>
 			</div>
 		</div>
-		<div id="picContainer" class="piccontainer" onmouseover="PicManager.showControls(0);" onmouseout="PicManager.hideControls(0);">
+		<div id="picContainer" class="piccontainer" onmouseover="picUploader.showControls();" onmouseout="picUploader.hideControls();">
 			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php" target="upload_target">
 				<div id="picTop">
 					<div id="error" class="error"></div>
 					<div id="controls" class="controls">
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="PicManager.zoomImage(0);">
+						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.zoomImage();">
 							<div class="icons zoom" title="Zoom"></div>
 						</div>
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="PicManager.rotateLeft();">
+						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.rotateLeft();">
 							<div class="icons rleft" title="Rotate left"></div>
 						</div>
 						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
 							<div class="icons rright" title="Rotate right"></div>
 						</div>
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="PicManager.deleteImage(0);">
+						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.deleteImage();">
 							<div class="icons delete" title="Delete"></div>
 						</div>
 					</div>
@@ -188,7 +188,7 @@
 					<div id="add" class="add">
 						<a href="#"><span><span class="extra">+</span> Add a Picture</span></a>
 						<div class="browse">
-							<input type="file" name="file" id="file" class="browse" onchange="PicManager.upload(0);"/>
+							<input type="file" name="file" id="file" class="browse" onchange="picUploader.upload();"/>
 						</div>				
 					</div>
 					<div id="progressMeter" class="progressmeter">

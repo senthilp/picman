@@ -95,7 +95,7 @@ if (isset($_FILES['file'])) {  // file was send from browser
 header("Content-Type: text/html; charset=utf-8");  
 
 // Build the script output
-$cb = isset($_GET['cb'])? $_GET['cb']: 'parent.PicManager.handleResponse'; 
+$cb = isset($_GET['cb'])? $_GET['cb']: 'parent.picUploader.handleResponse'; 
 $html = '<script>'.$cb.'('.json_encode($response).')</script>';
 
 // echo out the content
