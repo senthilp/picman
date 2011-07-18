@@ -33,7 +33,7 @@ function PicUploader(dataObj){
 		maskLayer = dataObj.maskLayer, // mask layer
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
-		isXhrUploadSupported = PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
+		isXhrUploadSupported = 0 && PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -74,10 +74,15 @@ function PicUploader(dataObj){
 			return img;
 		},
 		createIframe = function(id) {
-			var iframe = d.createElement('iframe');
+			var iframe;
+			try{
+				iframe = d.createElement('<iframe name="' + id + '">');
+			} catch(ex) {
+				iframe = d.createElement('iframe');
+				iframe.setAttribute('name', id);
+			}
 			
-			iframe.setAttribute('id', id);			
-			iframe.setAttribute('name', id);
+			iframe.setAttribute('id', id);						
 			iframe.style.display = 'none';
 	        document.body.appendChild(iframe);
 
@@ -135,7 +140,7 @@ function PicUploader(dataObj){
 		uploadIframe = function(fileInfo, cb) {
 			var iframe = createIframe(fileInfo.name);		
 			!uploadForm && (uploadForm = d[get](uploadFormName)); 
-			uploadForm.setAttribute('target', iframe.name);			
+			uploadForm.setAttribute('target', iframe.name);
 			attach(iframe, 'load', function() {
 	            // when we remove iframe from dom
 	            // the request stops, but in IE load
@@ -200,12 +205,6 @@ function PicUploader(dataObj){
 		var err = !res? "No response from server. Try again": res.error,
 			img,
 			that = this;
-
-		// Hide the file name
-		hide(fileNameLayer);
-		
-		// Hide the progress meter layer
-		hide(progMeterLayer);
 		
 		if(err) {
 			updateError(err.msg); // Update error
@@ -228,12 +227,18 @@ function PicUploader(dataObj){
 				}(res));
 	
 		}	
-		
+				
 		// Call the final callback
 		finalCb && finalCb();
 	};
 	
 	this.complete = function(res) {
+		
+		// Hide the file name
+		hide(fileNameLayer);
+		
+		// Hide the progress meter layer
+		hide(progMeterLayer);
 		
 		// Show the wrapper (both visibility & display) 
 		show(imageWrapper);

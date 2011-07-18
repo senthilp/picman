@@ -6,6 +6,7 @@
 	<style type="text/css">
 			body {
 				margin: 0 auto;
+				width: 960px;
 			}
 			h1 {
 				margin: 40px 0 55px;
@@ -18,7 +19,8 @@
 			}
 			.piccontainer {				
 				width: 200px;
-				margin: 0 auto;
+				margin: 10px;
+				float: left;				
 			}
 			.picman {
 				font-family: Arial,Helvetica,sans-serif;
@@ -45,7 +47,7 @@
 				width: 155px; 
 				height: 20px; 
 				position: absolute; 
-				left: 738px; 
+				left: 375px; 
 				top: 0;
 			}
 			.browse {
@@ -162,7 +164,7 @@
 	<div class="picman">
 		<div id="add" class="add">
 			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php">
-				<a href="#"><span><span class="extra">+</span> Add a Picture</span></a>
+				<a href="#"><span><span class="extra">+</span> Add Pictures</span></a>
 				<div class="browse">
 					<input type="file" name="picfile" id="picfile" class="browse" multiple="multiple"/>
 				</div>
@@ -206,13 +208,51 @@
 				2007 Acura TSX
 			</div>
 		</div>
+		<div id="picContainer1" class="piccontainer">
+			<div id="overlay1" class="overlay">
+				<div class="bigimage">
+					<div class="close"><a href="#" id="closeZoomLink1">Close</a></div>
+					<div id="enlarge1"></div>
+				</div>
+			</div>		
+			<div id="picTop1">
+				<div id="error1" class="error"></div>
+				<div id="controls1" class="controls">
+					<div id="zoom1" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons zoom" title="Zoom"></div>
+					</div>
+					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons rleft" title="Rotate left"></div>
+					</div>
+					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons rright" title="Rotate right"></div>
+					</div>
+					<div id="delete1" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons delete" title="Delete"></div>
+					</div>
+				</div>
+			</div>
+			<div class="picholder border">
+				<div id="imageWrapper1"></div>
+				<div id="fileName1" class="filename">Image Name</div>					
+				<div id="progressMeter1" class="progressmeter">
+					<div id="meter1" class="meter">
+						<div id="progress1" class="progress"></div>
+					</div>
+					<div id="percentage1" class="percentage">0%</div> 
+				</div>
+			</div>
+			<div id="picBottom1" class="picbottom">
+				2004 Acura MSX
+			</div>
+		</div>		
 	</div>	
 	<script src="progressmeter.js"></script>
 	<script src="picuploader.js"></script>
 	<script src="picmanager.js"></script>
 	<script>
 		var PicManConfig = {
-			MAX_LIMIT: 1,
+			MAX_LIMIT: 2,
 			uploadForm: "file_upload_form", 
 			file: "picfile", 
 			maskLayer: "mask",

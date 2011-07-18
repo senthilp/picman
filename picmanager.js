@@ -68,6 +68,7 @@ var PicManager = function() {
 		upload: function() {
 			var fileList = getFileList(), 
 				picUploader, 
+				localindex = startIndex, 
 				counter = 0, // counter incremented on each file upload
 				length, // count on the number of files for this upload 
 				i;
@@ -88,19 +89,19 @@ var PicManager = function() {
 					serverURL: picManConfig.serverURL,
 					maskLayer: maskLayer,
 					file: fileList[i], 
-					fileNameLayer: picManConfig.image.fileNameLayer + startIndex, 
-					progressMeterLayer: picManConfig.image.progressMeterLayer + startIndex,
-					progressLayer: picManConfig.image.progressLayer + startIndex,
-					percentLayer: picManConfig.image.percentLayer + startIndex,
-					errorLayer: picManConfig.image.errorLayer + startIndex,
-					imageWrapper: picManConfig.image.imageWrapper + startIndex,
-					controlsLayer: picManConfig.image.controlsLayer + startIndex,
-					overlayLayer: picManConfig.image.overlayLayer + startIndex,
-					zoomLayer: picManConfig.image.zoomLayer + startIndex,
-					picContainer: picManConfig.image.picContainer + startIndex,
-					closeZoomLink: picManConfig.image.closeZoomLink + startIndex,
-					zoomControl: picManConfig.image.zoomControl + startIndex,
-					deleteControl: picManConfig.image.deleteControl + startIndex,					
+					fileNameLayer: picManConfig.image.fileNameLayer + localindex, 
+					progressMeterLayer: picManConfig.image.progressMeterLayer + localindex,
+					progressLayer: picManConfig.image.progressLayer + localindex,
+					percentLayer: picManConfig.image.percentLayer + localindex,
+					errorLayer: picManConfig.image.errorLayer + localindex,
+					imageWrapper: picManConfig.image.imageWrapper + localindex,
+					controlsLayer: picManConfig.image.controlsLayer + localindex,
+					overlayLayer: picManConfig.image.overlayLayer + localindex,
+					zoomLayer: picManConfig.image.zoomLayer + localindex,
+					picContainer: picManConfig.image.picContainer + localindex,
+					closeZoomLink: picManConfig.image.closeZoomLink + localindex,
+					zoomControl: picManConfig.image.zoomControl + localindex,
+					deleteControl: picManConfig.image.deleteControl + localindex,					
 					finalCb: function() {
 						startIndex++;
 						counter++;
@@ -109,7 +110,8 @@ var PicManager = function() {
 						}
 					} 
 				}); 
-				picUploader.upload();				
+				picUploader.upload();	
+				localindex++;
 			}
 		}
 	};

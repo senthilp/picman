@@ -37,6 +37,7 @@ function ProgressMeter(dataObj) {
 	};
 	
 	this.progress = function(percent) {
+		progressPercent = percent;
 		progressLayer.style.width = percent + "%";
 		percentLayer.innerHTML = percent + "%";
 	};
