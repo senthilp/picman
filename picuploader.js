@@ -327,7 +327,7 @@ function PicUploader(dataObj){
 	attach(d[get](dataObj.picContainer), "mouseover", function(){
 		instance.showControls();
 	});
-	attach(d[get](dataObj.picContainer), "onmouseout", function(){
+	attach(d[get](dataObj.picContainer), "mouseout", function(){
 		instance.hideControls();
 	});
 	attach(d[get](dataObj.closeZoomLink), "click", function(){
