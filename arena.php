@@ -1,3 +1,15 @@
+<?php 
+	// Vehicle List
+	$VEH_LIST = array("2007 Acura TSX", 
+					"2004 Acura MDX", 
+					"2007 Audi Q7",
+					"2011 BMW 330i",
+					"1998 Nissan Sentra",
+					"2010 Nissan Altima",
+					"1967 Ford Mustang",
+					"2003 Aston Martin DB5"
+					);
+?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML>
 <HEAD>
@@ -156,6 +168,9 @@
 				position: absolute;
 				display: none;			
 			}
+			.clear {
+				clear: both;
+			}
 	</style>	
 </HEAD>
 <BODY>
@@ -169,90 +184,22 @@
 					<input type="file" name="picfile" id="picfile" class="browse" multiple="multiple"/>
 				</div>
 			</form>				
-		</div>		
-		<div id="picContainer0" class="piccontainer">
-			<div id="overlay0" class="overlay">
-				<div class="bigimage">
-					<div class="close"><a href="#" id="closeZoomLink0">Close</a></div>
-					<div id="enlarge0"></div>
-				</div>
-			</div>		
-			<div id="picTop0">
-				<div id="error0" class="error"></div>
-				<div id="controls0" class="controls">
-					<div id="zoom0" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons zoom" title="Zoom"></div>
-					</div>
-					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons rleft" title="Rotate left"></div>
-					</div>
-					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons rright" title="Rotate right"></div>
-					</div>
-					<div id="delete0" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons delete" title="Delete"></div>
-					</div>
-				</div>
-			</div>
-			<div class="picholder border">
-				<div id="imageWrapper0"></div>
-				<div id="fileName0" class="filename">Image Name</div>					
-				<div id="progressMeter0" class="progressmeter">
-					<div id="meter0" class="meter">
-						<div id="progress0" class="progress"></div>
-					</div>
-					<div id="percentage0" class="percentage">0%</div> 
-				</div>
-			</div>
-			<div id="picBottom0" class="picbottom">
-				2007 Acura TSX
-			</div>
 		</div>
-		<div id="picContainer1" class="piccontainer">
-			<div id="overlay1" class="overlay">
-				<div class="bigimage">
-					<div class="close"><a href="#" id="closeZoomLink1">Close</a></div>
-					<div id="enlarge1"></div>
-				</div>
-			</div>		
-			<div id="picTop1">
-				<div id="error1" class="error"></div>
-				<div id="controls1" class="controls">
-					<div id="zoom1" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons zoom" title="Zoom"></div>
-					</div>
-					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons rleft" title="Rotate left"></div>
-					</div>
-					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons rright" title="Rotate right"></div>
-					</div>
-					<div id="delete1" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-						<div class="icons delete" title="Delete"></div>
-					</div>
-				</div>
-			</div>
-			<div class="picholder border">
-				<div id="imageWrapper1"></div>
-				<div id="fileName1" class="filename">Image Name</div>					
-				<div id="progressMeter1" class="progressmeter">
-					<div id="meter1" class="meter">
-						<div id="progress1" class="progress"></div>
-					</div>
-					<div id="percentage1" class="percentage">0%</div> 
-				</div>
-			</div>
-			<div id="picBottom1" class="picbottom">
-				2004 Acura MSX
-			</div>
-		</div>		
+		<?php 
+			for($i=0, $l=count($VEH_LIST); $i < $l; $i++) {
+				if($i%4 == 0) {
+					echo '<div class="clear"></div>';
+				}
+				echo getPicTemplate($i, $VEH_LIST[$i]);
+			}
+		?>			
 	</div>	
 	<script src="progressmeter.js"></script>
 	<script src="picuploader.js"></script>
 	<script src="picmanager.js"></script>
 	<script>
 		var PicManConfig = {
-			MAX_LIMIT: 2,
+			MAX_LIMIT: <?php echo count($VEH_LIST); ?>,
 			uploadForm: "file_upload_form", 
 			file: "picfile", 
 			maskLayer: "mask",
@@ -279,3 +226,48 @@
 	</script>		
 </BODY>
 </HTML>
+<?php 			
+	function getPicTemplate($index, $vehicle) {
+		$html = array();
+		$html[] = '<div id="picContainer'.$index.'" class="piccontainer">';
+		$html[] = '<div id="overlay'.$index.'" class="overlay">';
+		$html[] = '<div class="bigimage">';
+		$html[] = '<div class="close"><a href="#" id="closeZoomLink'.$index.'">Close</a></div>';
+		$html[] = '<div id="enlarge'.$index.'"></div>';
+		$html[] = '</div>';
+		$html[] = '</div>';
+		$html[] = '<div id="picTop'.$index.'">';
+		$html[] = '<div id="error'.$index.'" class="error"></div>';
+		$html[] = '<div id="controls'.$index.'" class="controls">';
+		$html[] = '<div id="zoom'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
+		$html[] = '<div class="icons zoom" title="Zoom"></div>';
+		$html[] = '</div>';
+		$html[] = '<div class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
+		$html[] = '<div class="icons rleft" title="Rotate left"></div>';
+		$html[] = '</div>';
+		$html[] = '<div class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
+		$html[] = '<div class="icons rright" title="Rotate right"></div>';
+		$html[] = '</div>';
+		$html[] = '<div id="delete'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';		
+		$html[] = '<div class="icons delete" title="Delete"></div>';
+		$html[] = '</div>';		
+		$html[] = '</div>';
+		$html[] = '</div>';
+		$html[] = '<div class="picholder border">';
+		$html[] = '<div id="imageWrapper'.$index.'"></div>';
+		$html[] = '<div id="fileName'.$index.'" class="filename">Image Name</div>';
+		$html[] = '<div id="progressMeter'.$index.'" class="progressmeter">';
+		$html[] = '<div id="meter'.$index.'" class="meter">';
+		$html[] = '<div id="progress'.$index.'" class="progress"></div>';
+		$html[] = '</div>';
+		$html[] = '<div id="percentage'.$index.'" class="percentage">0%</div>';
+		$html[] = '</div>';
+		$html[] = '</div>';
+		$html[] = '<div id="picBottom'.$index.'" class="picbottom">';
+		$html[] = $vehicle;
+		$html[] = '</div>';
+		$html[] = '</div>';
+				
+		return implode("\n", $html);
+	}
+?>

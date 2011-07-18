@@ -33,7 +33,7 @@ function PicUploader(dataObj){
 		maskLayer = dataObj.maskLayer, // mask layer
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
-		isXhrUploadSupported = 0 && PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
+		isXhrUploadSupported = PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -76,6 +76,7 @@ function PicUploader(dataObj){
 		createIframe = function(id) {
 			var iframe;
 			try{
+				// To overcome IE hack
 				iframe = d.createElement('<iframe name="' + id + '">');
 			} catch(ex) {
 				iframe = d.createElement('iframe');
@@ -217,7 +218,7 @@ function PicUploader(dataObj){
 			// Create and add the image
 			imageWrapper.appendChild(thumbnailImage = createImage(res.data.picURL, 131, 200));
 			// Create the canvas element
-			(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
+			//(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
 		
 			// Complete the progress meter with the callback which calls the final complete
 			progMeter.complete(function(r) {
