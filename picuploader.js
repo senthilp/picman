@@ -16,21 +16,24 @@ function PicUploader(dataObj){
 		/**
 		 * Private static variables 
 		 */	
+		instance = this,
 		d = document, 
 		get = "getElementById", // Shortcut for document.getElementById to enable compression			
 		imgLoadedState, // Flag to maintain image loaded state
-		index = dataObj.index, // Current index status
-		uploadForm = d[get](dataObj.uploadForm), // the page form to simulate AJAX
-		file = d[get](dataObj.file), // The file input type
+		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
+		uploadForm, // Local variable to cache form element
+		fileObj = dataObj.file, // The file input type
 		fileNameLayer = d[get](dataObj.fileNameLayer), // File name div
 		progMeterLayer = d[get](dataObj.progressMeterLayer), // Progress Meter layer
-		addLayer = d[get](dataObj.addPicLayer), // Add picture link div
 		errorLayer = d[get](dataObj.errorLayer), // Error layer
 		imageWrapper = d[get](dataObj.imageWrapper), // Image Wrapper
 		controls = d[get](dataObj.controlsLayer), // controls layer
 		overlay = d[get](dataObj.overlayLayer), // Overlay layer
 		zoomImageLayer = d[get](dataObj.zoomLayer), // Zoom image layer
-		maskLayer = d[get](dataObj.maskLayer), // mask layer
+		maskLayer = dataObj.maskLayer, // mask layer
+		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
+		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
+		isXhrUploadSupported = PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -69,31 +72,127 @@ function PicUploader(dataObj){
 			img.width = w;
 			img.src = src;
 			return img;
-		};
+		},
+		createIframe = function(id) {
+			var iframe = d.createElement('iframe');
+			
+			iframe.setAttribute('id', id);			
+			iframe.setAttribute('name', id);
+			iframe.style.display = 'none';
+	        document.body.appendChild(iframe);
+
+	        return iframe;			
+		},
+		getIframeResponse = function(iframe) {
+	        // iframe.contentWindow.document - for IE<7
+	        var doc = iframe.contentDocument ? iframe.contentDocument: iframe.contentWindow.document,
+	            response;
+	        try {
+	            response = eval("(" + doc.body.innerHTML + ")");
+	        } catch(err){
+	            response = null;
+	        }
+
+	        return response;
+		},
+		attach = function(element, type, fn) {
+		    if (element.addEventListener){
+		        element.addEventListener(type, fn, false);
+		    } else if (element.attachEvent){
+		        element.attachEvent('on' + type, fn);
+		    }			
+		},
+		uploadAJAX = function(fileInfo, cb) {
+			var xhr = new XMLHttpRequest();
+			
+			xhr.upload.onprogress = function(e){
+	            if (e.lengthComputable){	
+	            	var percentUpload = Math.round(e.loaded / e.total * 100);
+	            	if(percentUpload > 90) {
+	            		percentUpload = 90;
+	            	} 
+	            	progMeter.progress(percentUpload);
+	            }
+	        };
+	        
+	        xhr.onreadystatechange = function(){
+	            if (xhr.readyState == 4){
+	            	if (xhr.status == 200){	            		
+	            		cb(eval("(" + xhr.responseText + ")"));
+	            	} else {
+	            		cb();
+	            	}
+	            }
+	        };	
+	        
+	        xhr.open("POST", serverURL + "?picfile=" + fileInfo.name, true);
+	        // Not sure if these are required
+	        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+	        xhr.setRequestHeader("X-File-Name", encodeURIComponent(fileInfo.name));
+	        xhr.setRequestHeader("Content-Type", "application/octet-stream");	        
+	        xhr.send(fileInfo.file);	        
+		},
+		uploadIframe = function(fileInfo, cb) {
+			var iframe = createIframe(fileInfo.name);		
+			!uploadForm && (uploadForm = d[get](uploadFormName)); 
+			uploadForm.setAttribute('target', iframe.name);			
+			attach(iframe, 'load', function() {
+	            // when we remove iframe from dom
+	            // the request stops, but in IE load
+	            // event fires
+	            if (!iframe.parentNode){
+	                return;
+	            }
+
+	            // fixing Opera 10.53
+	            if (iframe.contentDocument &&
+	                iframe.contentDocument.body &&
+	                iframe.contentDocument.body.innerHTML == "false"){
+	                // In Opera event is fired second time
+	                // when body.innerHTML changed from false
+	                // to server response approx. after 1 sec
+	                // when we upload file with iframe
+	                return;
+	            }
+	            
+	            // Handle the response
+	            cb(getIframeResponse(iframe));
+	            
+	            // Delete the iframe with a timeout to fix busy state in FF3.6
+	            setTimeout(function(){
+	            	iframe.parentNode.removeChild(iframe);
+	            }, 1);
+			});
+			
+			uploadForm.submit();
+			
+			// Start the progess meter
+			progMeter.start(getInterval(fileInfo.size));
+
+		},
+		// Decide upload functionality based on browser support 
+		uploadServer = isXhrUploadSupported? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
+		
 		
 	this.upload = function() {
 		
-		var t = this,
-			fileInfo = t.getFileInfo(); 
+		var t = this;
 		
-		// Hide the add picture link & error message if any
-		hide(addLayer);
+		// Hide the error message if any
 		hide(errorLayer);
 
 		// Update the file name
-		updateContent(fileNameLayer, fileInfo.name);			
-		
-		// Submit the form
-		uploadForm.submit();	
+		updateContent(fileNameLayer, fileObj.name);			
 		
 		// Show the file name Layer
 		show(fileNameLayer);
 		
 		// Show the progress bar
 		show(progMeterLayer);
-		
-		// Start the progess meter
-		progMeter.start(getInterval(fileInfo.size));
+				
+		uploadServer(fileObj, function(res) {
+			t.handleResponse(res);
+		});
 	};
 	
 	this.handleResponse = function(res) {
@@ -101,10 +200,15 @@ function PicUploader(dataObj){
 		var err = !res? "No response from server. Try again": res.error,
 			img,
 			that = this;
+
+		// Hide the file name
+		hide(fileNameLayer);
+		
+		// Hide the progress meter layer
+		hide(progMeterLayer);
 		
 		if(err) {
 			updateError(err.msg); // Update error
-			show(addLayer); // Show add link again
 		} else { // Success	
 			// Load the image before completing the progress meter, so the images are shown seemlessly		
 			// Hide the display to preserve the dimensions
@@ -115,22 +219,21 @@ function PicUploader(dataObj){
 			imageWrapper.appendChild(thumbnailImage = createImage(res.data.picURL, 131, 200));
 			// Create the canvas element
 			(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
-			
-			// Complete the progress meter with the callback
+		
+			// Complete the progress meter with the callback which calls the final complete
 			progMeter.complete(function(r) {
 				return function() {
 							that.complete(r);
 						};
 				}(res));
-		}			
+	
+		}	
+		
+		// Call the final callback
+		finalCb && finalCb();
 	};
 	
 	this.complete = function(res) {
-		// Hide the file name
-		hide(fileNameLayer);
-		
-		// Hide the progress meter layer
-		hide(progMeterLayer);
 		
 		// Show the wrapper (both visibility & display) 
 		show(imageWrapper);
@@ -147,20 +250,6 @@ function PicUploader(dataObj){
 		imgLoadedState = 1;			
 	};
 	
-	this.getFileInfo = function() {
-		var current;
-		
-		try {			
-			current = file.files[index];
-		} catch(e) {
-			// TODO find a good way to get file size in IE
-			current = {fileName: "test", size: 2000000};
-		}
-					
-		return {name: current.fileName,
-				size: current.size};
-	};
-	
 	this.deleteImage = function() {
 		
 		// Clear the image wrapper
@@ -168,10 +257,7 @@ function PicUploader(dataObj){
 		
 		// Reset the Progress Meter
 		progMeter.progress(0);
-		
-		// Show add image layer
-		show(addLayer);
-		
+				
 		// Hide controls
 		hide(controls);
 		
@@ -230,21 +316,33 @@ function PicUploader(dataObj){
 		cContext.rotate(degree * Math.PI / 180);
 		cContext.drawImage(thumbnailImage, cx, cy);			
 	};
+	
+	// Bind events
+	attach(d[get](dataObj.picContainer), "mouseover", function(){
+		instance.showControls();
+	});
+	attach(d[get](dataObj.picContainer), "onmouseout", function(){
+		instance.hideControls();
+	});
+	attach(d[get](dataObj.closeZoomLink), "click", function(){
+		instance.closeOverlay();
+		return false;
+	});
+	attach(d[get](dataObj.zoomControl), "click", function(){
+		instance.zoomImage();
+	});
+	attach(d[get](dataObj.deleteControl), "click", function(){
+		instance.deleteImage();
+	});	
 };
 
-var picUploader = new PicUploader({
-		uploadForm: "file_upload_form", 
-		file: "file", 
-		fileNameLayer: "fileName", 
-		progressMeterLayer: "progressMeter",
-		progressLayer: "progress",
-		percentLayer: "percentage",
-		addPicLayer: "add", 
-		errorLayer: "error",
-		imageWrapper: "imageWrapper",
-		controlsLayer: "controls",
-		overlayLayer: "overlay",
-		zoomLayer: "enlarge",
-		maskLayer: "mask",
-		index: 0
-		});
+PicUploader.isXhrUploadSupported = function(){
+	var input = document.createElement("input");
+	input.type = "file";
+	
+	return ('multiple' in input &&
+			typeof File != "undefined" &&
+			typeof (new XMLHttpRequest()).upload != "undefined");
+}(); 
+
+PicUploader.serverURL = "upload.php";

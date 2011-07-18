@@ -1,15 +1,95 @@
 <?php
 $response = array(); // response object
 
-if (isset($_FILES['file'])) {  // file was send from browser
-	if ($_FILES['file']['error'] == UPLOAD_ERR_OK) {  // no error
+/**
+* Handle file uploads via XMLHttpRequest
+*/
+class UploadedFileXhr {
+	
+	private $size = 0;
+	private $error = 0;
+	
+	function __construct() {
+        if (isset($_SERVER["CONTENT_LENGTH"])){
+            $this->size = (int)$_SERVER["CONTENT_LENGTH"];
+        } else {
+        	$this->error = UPLOAD_ERR_INI_SIZE;
+        }
+        // If size exceeds limit
+        if($this->size > 12582912) {
+        	$this->error = UPLOAD_ERR_INI_SIZE;
+        }		
+	}
+	
+	function getBinary() {
+        $input = fopen("php://input", "r");
+        $temp = tmpfile();
+        $realSize = stream_copy_to_stream($input, $temp);
+        fclose($input);
+        
+        fseek($temp, 0, SEEK_SET);
+		$multiPartImageData = fread($temp, $realSize);
+        
+        return $multiPartImageData;
+    }
+    
+    function getName() {
+        return $_GET['picfile'];
+    }
+    
+    function getSize() {
+        return $this->size;
+    }
+    
+    function getError() {
+    	return $this->error;
+    }
+    
+}
+
+/**
+* Handle file uploads via regular form post (uses the $_FILES array)
+*/
+class UploadedFileForm {
+
+    function getBinary() {
+        $input = fopen($_FILES['picfile']['tmp_name'], "r");
+		$multiPartImageData = fread($input, $this->getSize());
+        fclose($input);
+        
+        return $multiPartImageData;        
+    }
+
+    function getName() {
+        return $_FILES['picfile']['name'];
+    }
+    
+    function getSize() {
+        return $_FILES['picfile']['size'];
+    }
+    
+    function getError() {
+    	$_FILES['picfile']['error'];
+    }
+}
+
+// Retreiving the file based on upload type (AJAX or Iframe)
+$fileObj = 0;
+if(isset($_GET['picfile'])) {
+	$fileObj = new UploadedFileXhr();	
+} elseif(isset($_FILES['picfile'])) {
+	$fileObj = new UploadedFileForm();
+}
+
+if ($fileObj) {  // file was send from browser
+	if (!$fileObj->getError() || $fileObj->getError() == UPLOAD_ERR_OK) {  // no error
 		
-		require_once 'eBayApi.php';
-    	
+		require_once 'eBayApi.php';    	   
+
 		// File details
-		$picNameIn = $_FILES['file']['name']; // image file to read and upload
-        $file = $_FILES['file']['tmp_name'];   
-	    
+		$picNameIn = $fileObj->getName(); // image file to read and upload	    
+	    $multiPartImageData = $fileObj->getBinary(); // do a binary read of image
+		
         // Credentials for eBay image upload API
         $devID = 'pcarad';
 	    $appID = 'CARadd873-f513-4d4e-9805-a1772cf489f';
@@ -20,10 +100,6 @@ if (isset($_FILES['file'])) {  // file was send from browser
 	    $siteID  = 0;                            // siteID needed in request - US=0, UK=3, DE=77...
 	    $verb    = 'UploadSiteHostedPictures';   // the call being made:
 	    $version = 721;                          // eBay API version
-	    
-	    $handle = fopen($file,'r');         // do a binary read of image
-	    $multiPartImageData = fread($handle,filesize($file));
-	    fclose($handle);
 	
 	    ///Build the request XML request which is first part of multi-part POST
 	    $xmlReq = '<?xml version="1.0" encoding="utf-8"?>' . "\n";
@@ -75,11 +151,12 @@ if (isset($_FILES['file'])) {  // file was send from browser
 		    
 		    $data = array();
 		    $data['ack'] = "".$ack;
+		   	error_log("########### ".print_r($respXmlObj, true));
 			$data['picURL'] = "".$picObj[0]->MemberURL;
 			$data['thumbNail'] = "".$picObj[1]->MemberURL;		     
 		    $response['data'] = $data;
 	    }
-    } elseif ($_FILES['file']['error'] == UPLOAD_ERR_INI_SIZE) {
+    } elseif ($fileObj->getError() == UPLOAD_ERR_INI_SIZE) {
     	// File exceeds the allowed size (upload_max_filesize directive in php.ini')
      	$response['error'] = getErrorResp(120, 'File exceeds the allowed size');
     } else { 
@@ -94,9 +171,14 @@ if (isset($_FILES['file'])) {  // file was send from browser
 // Set HTTP header to html
 header("Content-Type: text/html; charset=utf-8");  
 
+// Serialize the response
+$html = json_encode($response);
+
 // Build the script output
-$cb = isset($_GET['cb'])? $_GET['cb']: 'parent.picUploader.handleResponse'; 
-$html = '<script>'.$cb.'('.json_encode($response).')</script>';
+if(isset($_POST['cb'])) {
+	$cb = $_POST['cb'];
+	$html = '<script>'.$cb.'('.$html.')</script>'; 
+}
 
 // echo out the content
 echo $html;

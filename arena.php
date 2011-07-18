@@ -17,13 +17,15 @@
 				border: 1px solid gainsboro;
 			}
 			.piccontainer {				
-				font-family: Arial,Helvetica,sans-serif;
-				font-weight: bold;
-				font-size: 12px;
 				width: 200px;
 				margin: 0 auto;
 			}
-			.piccontainer a {				
+			.picman {
+				font-family: Arial,Helvetica,sans-serif;
+				font-size: 12px;
+				font-weight: bold;
+			}
+			.picman a {				
 				text-decoration: none; 
 			}
 			.picholder {
@@ -31,8 +33,9 @@
 				position: relative;
 			}
 			.add {
-				text-align: center;	
-				margin: 24px 0;						
+				margin-top: 20px;
+				text-align: center;			
+				position: relative;			
 			}
 			.add span.extra {
 				font-size: 16px;
@@ -42,8 +45,8 @@
 				width: 155px; 
 				height: 20px; 
 				position: absolute; 
-				left: 0; 
-				top: 53px;
+				left: 738px; 
+				top: 0;
 			}
 			.browse {
 				opacity: 0;
@@ -101,7 +104,7 @@
 				background-position: -64px 0;
 			}
 			.progressmeter {
-				padding-top: 16px;
+				padding-top: 70px;
 				color: gray;
 				visibility: hidden;
 			}				
@@ -156,56 +159,83 @@
 <BODY>
 	<h1>Picture Uploader</h1>
 	<div id="mask" class="mask"></div>
-	<div class="picman">	
-		<div id="overlay" class="overlay">
-			<div class="bigimage">
-				<div class="close"><a href="#" onclick="picUploader.closeOverlay();return false;">Close</a></div>
-				<div id="enlarge"></div>
+	<div class="picman">
+		<div id="add" class="add">
+			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php">
+				<a href="#"><span><span class="extra">+</span> Add a Picture</span></a>
+				<div class="browse">
+					<input type="file" name="picfile" id="picfile" class="browse" multiple="multiple"/>
+				</div>
+			</form>				
+		</div>		
+		<div id="picContainer0" class="piccontainer">
+			<div id="overlay0" class="overlay">
+				<div class="bigimage">
+					<div class="close"><a href="#" id="closeZoomLink0">Close</a></div>
+					<div id="enlarge0"></div>
+				</div>
+			</div>		
+			<div id="picTop0">
+				<div id="error0" class="error"></div>
+				<div id="controls0" class="controls">
+					<div id="zoom0" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons zoom" title="Zoom"></div>
+					</div>
+					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons rleft" title="Rotate left"></div>
+					</div>
+					<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons rright" title="Rotate right"></div>
+					</div>
+					<div id="delete0" class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
+						<div class="icons delete" title="Delete"></div>
+					</div>
+				</div>
+			</div>
+			<div class="picholder border">
+				<div id="imageWrapper0"></div>
+				<div id="fileName0" class="filename">Image Name</div>					
+				<div id="progressMeter0" class="progressmeter">
+					<div id="meter0" class="meter">
+						<div id="progress0" class="progress"></div>
+					</div>
+					<div id="percentage0" class="percentage">0%</div> 
+				</div>
+			</div>
+			<div id="picBottom0" class="picbottom">
+				2007 Acura TSX
 			</div>
 		</div>
-		<div id="picContainer" class="piccontainer" onmouseover="picUploader.showControls();" onmouseout="picUploader.hideControls();">
-			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php" target="upload_target">
-				<div id="picTop">
-					<div id="error" class="error"></div>
-					<div id="controls" class="controls">
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.zoomImage();">
-							<div class="icons zoom" title="Zoom"></div>
-						</div>
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.rotateLeft();">
-							<div class="icons rleft" title="Rotate left"></div>
-						</div>
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';">
-							<div class="icons rright" title="Rotate right"></div>
-						</div>
-						<div class="icon-hover" onmousedown="this.style.background = '#DDE1EB';" onmouseup="this.style.background = '';" onclick="picUploader.deleteImage();">
-							<div class="icons delete" title="Delete"></div>
-						</div>
-					</div>
-				</div>
-				<div class="picholder border">
-					<div id="imageWrapper"></div>
-					<div id="fileName" class="filename">Image Name</div>
-					<div id="add" class="add">
-						<a href="#"><span><span class="extra">+</span> Add a Picture</span></a>
-						<div class="browse">
-							<input type="file" name="file" id="file" class="browse" onchange="picUploader.upload();"/>
-						</div>				
-					</div>
-					<div id="progressMeter" class="progressmeter">
-						<div id="meter" class="meter">
-							<div id="progress" class="progress"></div>
-						</div>
-						<div id="percentage" class="percentage">0%</div> 
-					</div>
-				</div>
-				<div id="picBottom" class="picbottom">
-					2007 Acura TSX
-				</div>
-				<iframe id="upload_target" name="upload_target" src="" style="width:0;height:0;border:0px solid #fff;"></iframe>
-			</form>
-		</div>
-	</div>
+	</div>	
 	<script src="progressmeter.js"></script>
-	<script src="pic.js"></script>	
+	<script src="picuploader.js"></script>
+	<script src="picmanager.js"></script>
+	<script>
+		var PicManConfig = {
+			MAX_LIMIT: 1,
+			uploadForm: "file_upload_form", 
+			file: "picfile", 
+			maskLayer: "mask",
+			addPicLayer: "add",
+			serverURL: "upload.php",
+			image: { 
+				fileNameLayer: "fileName", 
+				progressMeterLayer: "progressMeter",
+				progressLayer: "progress",
+				percentLayer: "percentage", 
+				errorLayer: "error",
+				imageWrapper: "imageWrapper",
+				controlsLayer: "controls",
+				overlayLayer: "overlay",
+				zoomLayer: "enlarge",
+				picContainer: "picContainer",
+				closeZoomLink: "closeZoomLink",
+				zoomControl: "zoom", 
+				deleteControl: "delete"
+			}		
+		};		
+		// Initialize PicMan
+		PicManager.init(PicManConfig);	
+	</script>		
 </BODY>
 </HTML>
