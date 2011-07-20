@@ -181,7 +181,7 @@
 			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php">
 				<a href="#"><span><span class="extra">+</span> Add Pictures</span></a>
 				<div class="browse">
-					<input type="file" name="picfile" id="picfile" class="browse" multiple="multiple"/>
+					<input type="file" name="picfile" id="picfile" class="browse" />
 				</div>
 			</form>				
 		</div>

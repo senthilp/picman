@@ -33,7 +33,6 @@ function PicUploader(dataObj){
 		maskLayer = dataObj.maskLayer, // mask layer
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
-		isXhrUploadSupported = PicUploader.isXhrUploadSupported, // Flag to indicate if XHR multi upload is supported
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -89,6 +88,16 @@ function PicUploader(dataObj){
 
 	        return iframe;			
 		},
+		createForm = function(iframe, file) {
+			var form = d.createElement('form');
+	        form.setAttribute('action', serverURL);
+	        form.setAttribute('target', iframe.name);
+	        form.style.display = 'none';
+	        document.body.appendChild(form);
+	        form.appendChild(file);
+	        
+	        return form;			
+		},
 		getIframeResponse = function(iframe) {
 	        // iframe.contentWindow.document - for IE<7
 	        var doc = iframe.contentDocument ? iframe.contentDocument: iframe.contentWindow.document,
@@ -139,7 +148,7 @@ function PicUploader(dataObj){
 	        xhr.send(fileInfo.file);	        
 		},
 		uploadIframe = function(fileInfo, cb) {
-			var iframe = createIframe(fileInfo.name);		
+			var iframe = createIframe(fileInfo.name);
 			!uploadForm && (uploadForm = d[get](uploadFormName)); 
 			uploadForm.setAttribute('target', iframe.name);
 			attach(iframe, 'load', function() {
@@ -170,6 +179,7 @@ function PicUploader(dataObj){
 	            }, 1);
 			});
 			
+			// Submit the form
 			uploadForm.submit();
 			
 			// Start the progess meter
@@ -177,7 +187,7 @@ function PicUploader(dataObj){
 
 		},
 		// Decide upload functionality based on browser support 
-		uploadServer = isXhrUploadSupported? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
+		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
 		
 		
 	this.upload = function() {
@@ -341,14 +351,5 @@ function PicUploader(dataObj){
 		instance.deleteImage();
 	});	
 };
-
-PicUploader.isXhrUploadSupported = function(){
-	var input = document.createElement("input");
-	input.type = "file";
-	
-	return ('multiple' in input &&
-			typeof File != "undefined" &&
-			typeof (new XMLHttpRequest()).upload != "undefined");
-}(); 
 
 PicUploader.serverURL = "upload.php";

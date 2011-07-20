@@ -37,15 +37,15 @@ var PicManager = function() {
 				fileList = {error: "Maximum of only " + MAX_LIMIT + " images allowed. Please select accordingly"};
 			} else {
 				fileList = [];
-				if(file.files) {
+				if(PicManager.isMultiUploadSupported && file.files) {
 					for(i=0, l=file.files.length; i < l; i++) {
 						current = file.files[i];
-						fileList.push({file: current, name: current.name || current.fileName, size: current.size});
+						fileList.push({file: current, name: current.name || current.fileName, size: current.size, multiUpload: 1});
 					}
 				} else {
 					// IE 7 & 8 which does not support multi file upload
 					// Set size as mdedian 4MB					
-					fileList.push({file: file, name: file.value.replace(/.*(\/|\\)/, ""), size: 4046357});
+					fileList.push({file: file, name: file.value.replace(/.*(\/|\\)/, ""), size: 4046357, multiUpload: 0});
 				}
 			}
 			
@@ -56,10 +56,16 @@ var PicManager = function() {
 		init: function(config) {
 			var t = this;
 			picManConfig = config;
-			file = d[get](picManConfig.file);
 			addPicLayer = d[get](picManConfig.addPicLayer);
 			maskLayer = d[get](picManConfig.maskLayer);
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
+			// File related operations
+			file = d[get](picManConfig.file);
+			// Setting multiple attribute only if supported
+			if(PicManager.isMultiUploadSupported) {
+				file.setAttribute("multiple", "multiple");
+			}
+			// Attaching on change event 
 			attach(file, "change", function() {
 				t.upload();
 			});
@@ -113,6 +119,14 @@ var PicManager = function() {
 				picUploader.upload();	
 				localindex++;
 			}
-		}
+		},		
+		isMultiUploadSupported: function(){
+			var input = document.createElement("input");
+			input.type = "file";
+			
+			return ('multiple' in input &&
+					typeof File != "undefined" &&
+					typeof (new XMLHttpRequest()).upload != "undefined");
+		}()		
 	};
 }();
