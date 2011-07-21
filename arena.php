@@ -39,6 +39,19 @@
 				font-size: 12px;
 				font-weight: bold;
 			}
+			.dropbox {			
+    			border-radius: 2px 2px 2px 2px;
+    			height: 440px;
+    			margin-top: 20px;    			
+    			padding-left: 35px;
+			}
+			.droptext {
+				visibility: hidden;
+				color: #CCCCCC
+			}
+			.activate {
+				border: 4px dashed #DDDDDD;
+			}
 			.picman a {				
 				text-decoration: none; 
 			}
@@ -180,19 +193,26 @@
 		<div id="add" class="add">
 			<form id="file_upload_form" method="post" enctype="multipart/form-data" action="upload.php">
 				<a href="#"><span><span class="extra">+</span> Add Pictures</span></a>
+				<div id="dropText" class="droptext">
+					Or
+					<br/>
+					Drag photos into the drop box
+				</div>
 				<div class="browse">
 					<input type="file" name="picfile" id="picfile" class="browse" />
-				</div>
+				</div>				
 			</form>				
 		</div>
-		<?php 
-			for($i=0, $l=count($VEH_LIST); $i < $l; $i++) {
-				if($i%4 == 0) {
-					echo '<div class="clear"></div>';
+		<div id="dropBox" class="dropbox">
+			<?php 
+				for($i=0, $l=count($VEH_LIST); $i < $l; $i++) {
+					if($i%4 == 0) {
+						echo '<div class="clear"></div>';
+					}
+					echo getPicTemplate($i, $VEH_LIST[$i]);
 				}
-				echo getPicTemplate($i, $VEH_LIST[$i]);
-			}
-		?>			
+			?>	
+		</div>		
 	</div>	
 	<script src="progressmeter.js"></script>
 	<script src="picuploader.js"></script>
@@ -205,6 +225,8 @@
 			maskLayer: "mask",
 			addPicLayer: "add",
 			serverURL: "upload.php",
+			dropBox: "dropBox",
+			dropText: "dropText",
 			image: { 
 				fileNameLayer: "fileName", 
 				progressMeterLayer: "progressMeter",

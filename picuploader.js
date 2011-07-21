@@ -255,8 +255,8 @@ function PicUploader(dataObj){
 		show(imageWrapper);
 		show(imageWrapper, 1);
 		
-		// Show the controls
-		show(controls);
+		// Show only when mouse over
+		// show(controls);
 		
 		// Create image in zoom overlay
 		updateContent(zoomImageLayer, "");

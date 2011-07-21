@@ -7,6 +7,7 @@ var PicManager = function() {
 		maskLayer, // Mask Layer
 		addLayer, // Add file Layer
 		startIndex = 0, // Static closure variable to maintain the start index when file upload
+		inProgress = 0, // Flag to indicate if Pic Manager in working
 		hide = function(elem, display) { // Hides a layer 
 			if(display) { // If sets then hides display
 				elem.style.display = "none";
@@ -50,23 +51,64 @@ var PicManager = function() {
 			}
 			
 			return fileList;
+		},
+		activateDropbox = function(dropBoxDiv) {
+			var elem = d[get](dropBoxDiv),			
+				noOpHandler = function(evt) {
+					evt.stopPropagation();
+					evt.preventDefault();
+				},
+				pm = PicManager;
+			
+			// Show the box
+			elem.className = elem.className + " activate";	
+				
+			// Attach No Operation handler events events
+			attach(elem, "dragenter", noOpHandler);
+			attach(elem, "dragexit", noOpHandler);
+			attach(elem, "dragover", noOpHandler);
+			
+			// Attach the drop event
+			attach(elem, "drop", function(evt) {
+				// Prevent defaults
+				noOpHandler(evt);
+				
+				// If in progress then just return
+				if(inProgress) {
+					return;
+				}
+				
+				// Start the upload
+				file = evt.dataTransfer;
+				pm.upload();
+			});
 		};
 	
 	return {
 		init: function(config) {
-			var t = this;
+			// Setting the private static variables 
 			picManConfig = config;
 			addPicLayer = d[get](picManConfig.addPicLayer);
 			maskLayer = d[get](picManConfig.maskLayer);
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
+
 			// File related operations
-			file = d[get](picManConfig.file);
+			var t = this, fileElem = d[get](picManConfig.file);
 			// Setting multiple attribute only if supported
 			if(PicManager.isMultiUploadSupported) {
-				file.setAttribute("multiple", "multiple");
+				fileElem.setAttribute("multiple", "multiple");
+				// Activate the drop box & show the drop text
+				activateDropbox(picManConfig.dropBox);
+				show(d[get](picManConfig.dropText));
 			}
 			// Attaching on change event 
-			attach(file, "change", function() {
+			attach(fileElem, "change", function() {
+				// If in progress then just return
+				if(inProgress) {
+					return;
+				}
+				
+				file = fileElem;
 				t.upload();
 			});
 		},
@@ -78,6 +120,9 @@ var PicManager = function() {
 				counter = 0, // counter incremented on each file upload
 				length, // count on the number of files for this upload 
 				i;
+			
+			// Set in progress flag
+			inProgress = 1; 
 			
 			// Check for errors first
 			if(fileList.error) {
@@ -113,6 +158,7 @@ var PicManager = function() {
 						counter++;
 						if(counter == length) {
 							show(addPicLayer);
+							inProgress = 0;
 						}
 					} 
 				}); 
