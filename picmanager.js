@@ -63,9 +63,21 @@ var PicManager = function() {
 			// Show the box
 			elem.className = elem.className + " activate";	
 				
-			// Attach No Operation handler events events
-			attach(elem, "dragenter", noOpHandler);
-			attach(elem, "dragexit", noOpHandler);
+			// Always attach No Operation handler events events first
+			attach(elem, "dragenter", function(evt) {
+				// Prevent defaults
+				noOpHandler(evt);
+				// Highlight border
+				elem.className = elem.className + " dragenter";
+				
+			});
+			attach(elem, "dragexit", function(evt) {
+				// Prevent defaults
+				noOpHandler(evt);
+				// remove border highlight
+				elem.className = elem.className.replace(/ dragenter/g, "");
+				
+			});
 			attach(elem, "dragover", noOpHandler);
 			
 			// Attach the drop event
@@ -81,6 +93,8 @@ var PicManager = function() {
 				// Start the upload
 				file = evt.dataTransfer;
 				pm.upload();
+				// remove border highlight
+				elem.className = elem.className.replace(/ dragenter/g, "");				
 			});
 		};
 	
@@ -119,10 +133,7 @@ var PicManager = function() {
 				localindex = startIndex, 
 				counter = 0, // counter incremented on each file upload
 				length, // count on the number of files for this upload 
-				i;
-			
-			// Set in progress flag
-			inProgress = 1; 
+				i;			
 			
 			// Check for errors first
 			if(fileList.error) {
@@ -132,6 +143,9 @@ var PicManager = function() {
 			
 			// Hide the app pic layer
 			hide(addPicLayer);
+			
+			// Set in progress flag
+			inProgress = 1; 
 			
 			// Create and bind picuploader instances 
 			for(i=0, length=fileList.length; i<length; i++) {

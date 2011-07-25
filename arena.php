@@ -1,13 +1,13 @@
 <?php 
 	// Vehicle List
-	$VEH_LIST = array("2007 Acura TSX", 
-					"2004 Acura MDX", 
-					"2007 Audi Q7",
-					"2011 BMW 330i",
-					"1998 Nissan Sentra",
-					"2010 Nissan Altima",
-					"1967 Ford Mustang",
-					"2003 Aston Martin DB5"
+	$VEH_LIST = array("", 
+					"", 
+					"",
+					"",
+					"",
+					"",
+					"",
+					""
 					);
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
@@ -51,6 +51,9 @@
 			}
 			.activate {
 				border: 4px dashed #DDDDDD;
+			}
+			.dragenter {
+				border-color: #3964C2;
 			}
 			.picman a {				
 				text-decoration: none; 
