@@ -28,7 +28,14 @@ var PicManager = function() {
 		    } else if (element.attachEvent){
 		        element.attachEvent('on' + type, fn);
 		    }			
-		},			
+		},	
+		addClass = function(elem, className) {
+			elem.className = elem.className + " " + className;
+		},
+		removeClass = function(elem, className) {
+			var pattern = new RegExp(" " + className, "g");
+			elem.className = elem.className.replace(pattern, "");
+		},
 		getFileList = function() {
 			var fileList, i, l, current;
 			
@@ -53,49 +60,63 @@ var PicManager = function() {
 			return fileList;
 		},
 		activateDropbox = function(dropBoxDiv) {
-			var elem = d[get](dropBoxDiv),			
+			var elem = d[get](dropBoxDiv),	
+				exitFlag, // To control the dragLeave event, this will be set only if dragEnter is not called before drag leave 
+				// Always call  No Operation handler events events first
 				noOpHandler = function(evt) {
 					evt.stopPropagation();
 					evt.preventDefault();
+				},				
+				dragEnter = function(evt) {					
+					// Prevent defaults					
+					noOpHandler(evt);
+					// Reset exit flag
+					exitFlag = 0;
+					// Highlight border
+					addClass(elem, "dragenter");					
+				},
+				dragLeave = function(evt) {
+					// Prevent defaults
+					noOpHandler(evt);
+					// remove border highlight if exit flag is set
+					exitFlag && removeClass(elem, "dragenter");
+					exitFlag = 1;
+				},
+				dragExit = function(evt) {
+					// Prevent defaults
+					noOpHandler(evt);
+					// remove border highlight
+					removeClass(elem, "dragenter");
+				},
+				drop = function(evt) {
+					// Prevent defaults
+					noOpHandler(evt);
+					
+					// If in progress then just return
+					if(inProgress) {
+						return;
+					}
+					
+					// Start the upload
+					file = evt.dataTransfer;
+					pm.upload();
+					// remove border highlight
+					removeClass(elem, "dragenter");					
 				},
 				pm = PicManager;
 			
 			// Show the box
-			elem.className = elem.className + " activate";	
-				
-			// Always attach No Operation handler events events first
-			attach(elem, "dragenter", function(evt) {
-				// Prevent defaults
-				noOpHandler(evt);
-				// Highlight border
-				elem.className = elem.className + " dragenter";
-				
-			});
-			attach(elem, "dragexit", function(evt) {
-				// Prevent defaults
-				noOpHandler(evt);
-				// remove border highlight
-				elem.className = elem.className.replace(/ dragenter/g, "");
-				
-			});
+			addClass(elem, "activate");	
+			
+			// Attach drag events
+			attach(elem, "dragenter", dragEnter);
+			attach(elem, "dragleave", dragLeave); 
+			attach(elem, "dragexit", dragExit); // For FF < 3.5
 			attach(elem, "dragover", noOpHandler);
 			
 			// Attach the drop event
-			attach(elem, "drop", function(evt) {
-				// Prevent defaults
-				noOpHandler(evt);
-				
-				// If in progress then just return
-				if(inProgress) {
-					return;
-				}
-				
-				// Start the upload
-				file = evt.dataTransfer;
-				pm.upload();
-				// remove border highlight
-				elem.className = elem.className.replace(/ dragenter/g, "");				
-			});
+			attach(elem, "drop", drop);
+			attach(elem, "dragdrop", drop); // For FF < 3.5
 		};
 	
 	return {
@@ -150,6 +171,7 @@ var PicManager = function() {
 			// Create and bind picuploader instances 
 			for(i=0, length=fileList.length; i<length; i++) {
 				picUploader = new PicUploader({
+					index: startIndex + i,
 					uploadForm: picManConfig.uploadForm,
 					serverURL: picManConfig.serverURL,
 					maskLayer: maskLayer,

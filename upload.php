@@ -141,6 +141,7 @@ if ($fileObj) {  // file was send from browser
 	    
 	    // Check for errors
 	    if(stristr($respXmlStr, 'HTTP 404') || $respXmlStr == '') {
+	    	error_log("########### ".print_r($respXmlStr, true));
 	    	// EPS API upload error  
 	     	$response['error'] = getErrorResp(130, 'EPS API upload error');	        
 	    } else {    
@@ -151,7 +152,6 @@ if ($fileObj) {  // file was send from browser
 		    
 		    $data = array();
 		    $data['ack'] = "".$ack;
-		   	error_log("########### ".print_r($respXmlObj, true));
 			$data['picURL'] = "".$picObj[0]->MemberURL;
 			$data['thumbNail'] = "".$picObj[1]->MemberURL;		     
 		    $response['data'] = $data;
