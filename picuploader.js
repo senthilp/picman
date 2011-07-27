@@ -70,9 +70,9 @@ function PicUploader(dataObj){
 		},
 		createImage = function(src, h, w) {
 			var img = document.createElement('img');
-			img.height = h;
-			img.width = w;
 			img.src = src;
+			img.height = h;
+			img.width = w;			
 			return img;
 		},
 		createIframe = function(id) {

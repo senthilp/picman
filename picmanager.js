@@ -11,6 +11,7 @@ var PicManager = function() {
 		inProgress = 0, // Flag to indicate if Pic Manager in working
 		imageHash = [], // Hash to hold the image list in order
 		imageWrapperCache = [], // A cache to hold the images
+		picUploaderHash = [], // Hash to hold the pic uploader instances
 		hide = function(elem, display) { // Hides a layer 
 			if(display) { // If sets then hides display
 				elem.style.display = "none";
@@ -27,9 +28,9 @@ var PicManager = function() {
 		},
 		createImage = function(src, h, w) {
 			var img = document.createElement('img');
+			img.src = src;
 			img.height = h;
 			img.width = w;
-			img.src = src;
 			return img;
 		},		
 		attach = function(element, type, fn) {
@@ -191,48 +192,52 @@ var PicManager = function() {
 			
 			// Create and bind picuploader instances 
 			for(i=0, length=fileList.length; i<length; i++) {
-				picUploader = new PicUploader({
-					index: startIndex + i,
-					uploadForm: picManConfig.uploadForm,
-					serverURL: picManConfig.serverURL,
-					maskLayer: maskLayer,
-					file: fileList[i], 
-					fileNameLayer: picManConfig.image.fileNameLayer + localindex, 
-					progressMeterLayer: picManConfig.image.progressMeterLayer + localindex,
-					progressLayer: picManConfig.image.progressLayer + localindex,
-					percentLayer: picManConfig.image.percentLayer + localindex,
-					errorLayer: picManConfig.image.errorLayer + localindex,
-					imageWrapper: picManConfig.image.imageWrapper + localindex,
-					controlsLayer: picManConfig.image.controlsLayer + localindex,
-					overlayLayer: picManConfig.image.overlayLayer + localindex,
-					zoomLayer: picManConfig.image.zoomLayer + localindex,
-					picContainer: picManConfig.image.picContainer + localindex,
-					closeZoomLink: picManConfig.image.closeZoomLink + localindex,
-					zoomControl: picManConfig.image.zoomControl + localindex,
-					primaryControl: picManConfig.image.primaryControl + localindex,
-					deleteControl: picManConfig.image.deleteControl + localindex,					
-					finalCb: function(index, imgData) {
-						startIndex++;
-						counter++;
-						imageHash[index] = imgData;
-						if(counter == length) {
-							show(addPicLayer);
-							inProgress = 0;
-							// Set primary if primaryIndex = 0 
-							primaryIndex == 0 && that.setPrimary();
+				// Check the hash first then create an instance
+				if(!(picUploader = picUploaderHash[localindex])) {
+					picUploader = new PicUploader({
+						index: localindex,
+						uploadForm: picManConfig.uploadForm,
+						serverURL: picManConfig.serverURL,
+						maskLayer: maskLayer,
+						file: fileList[i], 
+						fileNameLayer: picManConfig.image.fileNameLayer + localindex, 
+						progressMeterLayer: picManConfig.image.progressMeterLayer + localindex,
+						progressLayer: picManConfig.image.progressLayer + localindex,
+						percentLayer: picManConfig.image.percentLayer + localindex,
+						errorLayer: picManConfig.image.errorLayer + localindex,
+						imageWrapper: picManConfig.image.imageWrapper + localindex,
+						controlsLayer: picManConfig.image.controlsLayer + localindex,
+						overlayLayer: picManConfig.image.overlayLayer + localindex,
+						zoomLayer: picManConfig.image.zoomLayer + localindex,
+						picContainer: picManConfig.image.picContainer + localindex,
+						closeZoomLink: picManConfig.image.closeZoomLink + localindex,
+						zoomControl: picManConfig.image.zoomControl + localindex,
+						primaryControl: picManConfig.image.primaryControl + localindex,
+						deleteControl: picManConfig.image.deleteControl + localindex,					
+						finalCb: function(index, imgData) {
+							startIndex++;
+							counter++;
+							imageHash[index] = imgData;
+							if(counter == length) {
+								show(addPicLayer);
+								inProgress = 0;
+								// Set primary if primaryIndex = 0 
+								primaryIndex == 0 && that.setPrimary();
+							}
+						},
+						deleteCb: function(index) {
+							// Remove image from hash
+							that.removeImageHash(index);
+							// Do a reflow
+							that.reflow();
+						},
+						primaryCb: function(index) {
+							// Set primary
+							that.setPrimary(index);
 						}
-					},
-					deleteCb: function(index) {
-						// Remove image from hash
-						that.removeImageHash(index);
-						// Do a reflow
-						that.reflow();
-					},
-					primaryCb: function(index) {
-						// Set primary
-						that.setPrimary(index);
-					}
-				}); 
+					}); 
+					picUploaderHash[i] = picUploader;
+				} 
 				picUploader.upload();	
 				localindex++;
 			}
@@ -300,6 +305,7 @@ var PicManager = function() {
 					}
 				}
 			}
+			// Reset start index
 			startIndex = imageHash.length;
 			// If there is Image then set Primary
 			startIndex && this.setPrimary();
