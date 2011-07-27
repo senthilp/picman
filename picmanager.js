@@ -4,10 +4,13 @@ var PicManager = function() {
 		MAX_LIMIT, // Max number of files allowed to be uploaded
 		picManConfig, // Pic man config bean
 		file, // File browse HTML element
+		primaryIndex, // Index to denote primary Image
 		maskLayer, // Mask Layer
 		addLayer, // Add file Layer
 		startIndex = 0, // Static closure variable to maintain the start index when file upload
 		inProgress = 0, // Flag to indicate if Pic Manager in working
+		imageHash = [], // Hash to hold the image list in order
+		imageWrapperCache = [], // A cache to hold the images
 		hide = function(elem, display) { // Hides a layer 
 			if(display) { // If sets then hides display
 				elem.style.display = "none";
@@ -22,6 +25,13 @@ var PicManager = function() {
 				elem.style.visibility = "visible";
 			}			
 		},
+		createImage = function(src, h, w) {
+			var img = document.createElement('img');
+			img.height = h;
+			img.width = w;
+			img.src = src;
+			return img;
+		},		
 		attach = function(element, type, fn) {
 		    if (element.addEventListener){
 		        element.addEventListener(type, fn, false);
@@ -61,13 +71,14 @@ var PicManager = function() {
 		},
 		activateDropbox = function(dropBoxDiv) {
 			var elem = d[get](dropBoxDiv),	
+				pm = PicManager,
 				exitFlag, // To control the dragLeave event, this will be set only if dragEnter is not called before drag leave 
 				// Always call  No Operation handler events events first
 				noOpHandler = function(evt) {
 					evt.stopPropagation();
 					evt.preventDefault();
 				},				
-				dragEnter = function(evt) {					
+				dragEnter = function(evt) {		
 					// Prevent defaults					
 					noOpHandler(evt);
 					// Reset exit flag
@@ -102,8 +113,7 @@ var PicManager = function() {
 					pm.upload();
 					// remove border highlight
 					removeClass(elem, "dragenter");					
-				},
-				pm = PicManager;
+				};
 			
 			// Show the box
 			addClass(elem, "activate");	
@@ -126,7 +136,7 @@ var PicManager = function() {
 			addPicLayer = d[get](picManConfig.addPicLayer);
 			maskLayer = d[get](picManConfig.maskLayer);
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
-
+			primaryIndex = picManConfig.primaryIndex;			
 			// File related operations
 			var t = this, fileElem = d[get](picManConfig.file);
 			// Setting multiple attribute only if supported
@@ -153,7 +163,8 @@ var PicManager = function() {
 				picUploader, 
 				localindex = startIndex, 
 				counter = 0, // counter incremented on each file upload
-				length, // count on the number of files for this upload 
+				length, // count on the number of files for this upload
+				that = this, // Getting the singleton instance
 				i;			
 			
 			// Check for errors first
@@ -189,19 +200,84 @@ var PicManager = function() {
 					closeZoomLink: picManConfig.image.closeZoomLink + localindex,
 					zoomControl: picManConfig.image.zoomControl + localindex,
 					deleteControl: picManConfig.image.deleteControl + localindex,					
-					finalCb: function() {
+					finalCb: function(index, imgData) {
 						startIndex++;
 						counter++;
+						imageHash[index] = imgData;
 						if(counter == length) {
 							show(addPicLayer);
 							inProgress = 0;
+							that.setPrimary();
 						}
-					} 
+					},
+					deleteCb: function(index) {
+						// Remove image from hash
+						that.removeImageHash(index);
+						// Do a reflow
+						that.reflow();
+					}
 				}); 
 				picUploader.upload();	
 				localindex++;
 			}
-		},		
+		},	
+		getImageHash: function() {
+			return imageHash;
+		},
+		removeImageHash: function(index) {
+			if(primaryIndex == index) {
+				primaryIndex = 0;
+			} else if(primaryIndex > index) {
+				primaryIndex--;
+			}
+			imageHash = imageHash.slice(0, index).concat(imageHash.slice(index + 1));
+		},
+		setPrimary: function(index) {
+			// Set index to primary if not passed
+			if(!index) {
+				index = primaryIndex;
+			} else if(primaryIndex != index) {
+				//Remove primary Class
+				removeClass(d[get](picManConfig.image.imageWrapper + primaryIndex), "primary");
+				primaryIndex = index;
+			}
+			// Set the primary Class
+			addClass(d[get](picManConfig.image.imageWrapper + primaryIndex), "primary");
+		},
+		reflow: function() {
+			var imageWrapper,
+				img,
+				id, 
+				src,
+				i=0, 
+				l=startIndex;  
+			for(; i<l; i++) {
+				id = picManConfig.image.imageWrapper + i;
+				// Check in the cahce first
+				if(!(imageWrapper = imageWrapperCache[id])) {
+					imageWrapper = d[get](id);
+					imageWrapperCache[id] = imageWrapper;
+				}
+				
+				// Remove the primary class from the wrapper
+				removeClass(imageWrapper, "primary");
+				
+				if(typeof imageHash[i] == "undefined") { // Check if present in hash else set the content as empty
+					imageWrapper.innerHTML = "";
+				} else { 
+					src = imageHash[i].error? "": imageHash[i].mainUrl;
+					if(img = imageWrapper.firstChild) { // Get the image and set the source
+						// TODO set error image URL and set Thumbnail URL accordingly
+						img.src=src;	
+					} else { // Create image and append
+						imageWrapper.appendChild(createImage(src, 131, 200));
+					}
+				}
+			}
+			startIndex = imageHash.length;
+			// If there is Image then set Primary
+			startIndex && this.setPrimary();
+		},
 		isMultiUploadSupported: function(){
 			var input = document.createElement("input");
 			input.type = "file";

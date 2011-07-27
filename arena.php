@@ -21,7 +21,7 @@
 				width: 960px;
 			}
 			h1 {
-				margin: 40px 0 55px;
+				margin: 10px 0;
 				color: gray;
 				text-align: center;
 			}
@@ -31,8 +31,11 @@
 			}
 			.piccontainer {				
 				width: 200px;
-				margin: 10px;
+				margin: 10px 10px 0;
 				float: left;				
+			}
+			.primary {
+				border: 3px solid brown;
 			}
 			.picman {
 				font-family: Arial,Helvetica,sans-serif;
@@ -41,7 +44,7 @@
 			}
 			.dropbox {			
     			border-radius: 2px 2px 2px 2px;
-    			height: 440px;
+    			height: 410px;
     			margin-top: 20px;    			
     			padding-left: 35px;
 			}
@@ -63,7 +66,6 @@
 				position: relative;
 			}
 			.add {
-				margin-top: 20px;
 				text-align: center;			
 				position: relative;			
 			}
@@ -230,6 +232,7 @@
 			serverURL: "upload.php",
 			dropBox: "dropBox",
 			dropText: "dropText",
+			primaryIndex: 0,
 			image: { 
 				fileNameLayer: "fileName", 
 				progressMeterLayer: "progressMeter",

@@ -20,6 +20,7 @@ function PicUploader(dataObj){
 		d = document, 
 		get = "getElementById", // Shortcut for document.getElementById to enable compression			
 		imgLoadedState, // Flag to maintain image loaded state
+		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
 		uploadForm, // Local variable to cache form element
 		fileObj = dataObj.file, // The file input type
@@ -32,6 +33,7 @@ function PicUploader(dataObj){
 		zoomImageLayer = d[get](dataObj.zoomLayer), // Zoom image layer
 		maskLayer = dataObj.maskLayer, // mask layer
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
+		deleteCb = dataObj.deleteCb, // Delete callback to call after user deletes an image
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
@@ -214,12 +216,14 @@ function PicUploader(dataObj){
 	this.handleResponse = function(res) {
 		// Get error message if any
 		var err = !res? "No response from server. Try again": res.error,
-			img,
+			imgData = {error: err},
 			that = this;
 		
 		if(err) {
 			updateError(err.msg); // Update error
 		} else { // Success	
+			// Set the image data object			
+			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.picURL};
 			// Load the image before completing the progress meter, so the images are shown seemlessly		
 			// Hide the display to preserve the dimensions
 			hide(imageWrapper, 1);
@@ -227,6 +231,8 @@ function PicUploader(dataObj){
 			updateContent(imageWrapper, "");				
 			// Create and add the image
 			imageWrapper.appendChild(thumbnailImage = createImage(res.data.picURL, 131, 200));
+			// Attache the events
+			
 			// Create the canvas element
 			//(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
 		
@@ -240,7 +246,7 @@ function PicUploader(dataObj){
 		}	
 				
 		// Call the final callback
-		finalCb && finalCb();
+		finalCb && finalCb(index, imgData);
 	};
 	
 	this.complete = function(res) {
@@ -267,7 +273,6 @@ function PicUploader(dataObj){
 	};
 	
 	this.deleteImage = function() {
-		
 		// Clear the image wrapper
 		updateContent(imageWrapper, "");
 		
@@ -275,18 +280,19 @@ function PicUploader(dataObj){
 		progMeter.progress(0);
 				
 		// Hide controls
-		hide(controls);
+		hide(controls);		
 		
-		// Reset the image loaded state
-		imgLoadedState = 0;
+		if(deleteCb) { // Call the delete callback if present
+			deleteCb(index);
+		} 
 	};
 	
 	this.showControls = function() {
-		imgLoadedState && show(controls);
+		imgLoadedState && imageWrapper.firstChild && show(controls);
 	};
 	
 	this.hideControls = function() {
-		imgLoadedState && hide(controls);
+		imgLoadedState && imageWrapper.firstChild && hide(controls);
 	};
 	
 	this.zoomImage = function() {			
