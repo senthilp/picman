@@ -5,6 +5,7 @@ var PicManager = function() {
 		picManConfig, // Pic man config bean
 		file, // File browse HTML element
 		primaryIndex, // Index to denote primary Image
+		primeFlag, // Flag to denote if setPrimary should be called on init
 		maskLayer, // Mask Layer
 		addLayer, // Add file Layer
 		startIndex = 0, // Static closure variable to maintain the start index when file upload
@@ -95,13 +96,15 @@ var PicManager = function() {
 					// Reset exit flag
 					exitFlag = 0;
 					// Highlight border
-					addClass(elem, "dragenter");					
+					addClass(elem, "dragenter");
+					console.log("Drag Entered");
 				},
 				dragLeave = function(evt) {
 					// Prevent defaults
 					noOpHandler(evt);
 					// remove border highlight if exit flag is set
-					exitFlag && removeClass(elem, "dragenter");
+					exitFlag && removeClass(elem, "dragenter");					
+					exitFlag? console.log("Drag Exitted with action"): console.log("Drag Exitted without action");	
 					exitFlag = 1;
 				},
 				dragExit = function(evt) {
@@ -147,7 +150,8 @@ var PicManager = function() {
 			addPicLayer = d[get](picManConfig.addPicLayer);
 			maskLayer = d[get](picManConfig.maskLayer);
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
-			primaryIndex = picManConfig.primaryIndex;			
+			primaryIndex = picManConfig.primaryIndex;	
+			primeFlag = primaryIndex == 0;
 			// File related operations
 			var t = this, fileElem = d[get](picManConfig.file);
 			// Setting multiple attribute only if supported
@@ -221,8 +225,11 @@ var PicManager = function() {
 							if(counter == length) {
 								show(addPicLayer);
 								inProgress = 0;
-								// Set primary if primaryIndex = 0 
-								primaryIndex == 0 && that.setPrimary();
+								// Set primary if primeFlag is set 
+								if(primeFlag){
+									that.setPrimary();
+									primeFlag = 0; // Reset prime flag
+								}								
 							}
 						},
 						deleteCb: function(index) {
