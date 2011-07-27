@@ -34,6 +34,7 @@ function PicUploader(dataObj){
 		maskLayer = dataObj.maskLayer, // mask layer
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		deleteCb = dataObj.deleteCb, // Delete callback to call after user deletes an image
+		primaryCb = dataObj.primaryCb, // Primary callback to call after user an image as primary
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
@@ -282,9 +283,14 @@ function PicUploader(dataObj){
 		// Hide controls
 		hide(controls);		
 		
-		if(deleteCb) { // Call the delete callback if present
-			deleteCb(index);
-		} 
+		// Call the delete callback if present
+		deleteCb &&	deleteCb(index);	 
+	};
+	
+	// This method currently acts as a facade to the callback function
+	// Logic can be added if needed
+	this.setPrimary = function() {
+		primaryCb && primaryCb(index);
 	};
 	
 	this.showControls = function() {
@@ -355,6 +361,9 @@ function PicUploader(dataObj){
 	});
 	attach(d[get](dataObj.deleteControl), "click", function(){
 		instance.deleteImage();
+	});
+	attach(d[get](dataObj.primaryControl), "click", function(){
+		instance.setPrimary();
 	});	
 };
 

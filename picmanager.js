@@ -46,6 +46,16 @@ var PicManager = function() {
 			var pattern = new RegExp(" " + className, "g");
 			elem.className = elem.className.replace(pattern, "");
 		},
+		getImageWrapper = function(index) {
+			var id = picManConfig.image.imageWrapper + index,
+				imageWrapper;
+			// Check in the cahce first
+			if(!(imageWrapper = imageWrapperCache[id])) {
+				imageWrapper = d[get](id);
+				imageWrapperCache[id] = imageWrapper;
+			}
+			return imageWrapper;
+		}, 
 		getFileList = function() {
 			var fileList, i, l, current;
 			
@@ -199,6 +209,7 @@ var PicManager = function() {
 					picContainer: picManConfig.image.picContainer + localindex,
 					closeZoomLink: picManConfig.image.closeZoomLink + localindex,
 					zoomControl: picManConfig.image.zoomControl + localindex,
+					primaryControl: picManConfig.image.primaryControl + localindex,
 					deleteControl: picManConfig.image.deleteControl + localindex,					
 					finalCb: function(index, imgData) {
 						startIndex++;
@@ -207,7 +218,8 @@ var PicManager = function() {
 						if(counter == length) {
 							show(addPicLayer);
 							inProgress = 0;
-							that.setPrimary();
+							// Set primary if primaryIndex = 0 
+							primaryIndex == 0 && that.setPrimary();
 						}
 					},
 					deleteCb: function(index) {
@@ -215,6 +227,10 @@ var PicManager = function() {
 						that.removeImageHash(index);
 						// Do a reflow
 						that.reflow();
+					},
+					primaryCb: function(index) {
+						// Set primary
+						that.setPrimary(index);
 					}
 				}); 
 				picUploader.upload();	
@@ -225,42 +241,52 @@ var PicManager = function() {
 			return imageHash;
 		},
 		removeImageHash: function(index) {
-			if(primaryIndex == index) {
+			if(primaryIndex == index) {// Check if index to be removed is Primary index, then first image becomes primary
 				primaryIndex = 0;
-			} else if(primaryIndex > index) {
+			} else if(primaryIndex > index) {// If primary index is greater than removed index, then reduce by 1 since it will be shifted to left
 				primaryIndex--;
 			}
 			imageHash = imageHash.slice(0, index).concat(imageHash.slice(index + 1));
 		},
 		setPrimary: function(index) {
+			var imageWrapper;
+			if(typeof index != "undefined" && primaryIndex != index) {
+				//Remove primary Class
+				this.removePrimary(primaryIndex);
+				primaryIndex = index;
+			}
+			imageWrapper = getImageWrapper(primaryIndex);
+			// Set the primary Class and set sttribute
+			addClass(imageWrapper, "primary");			
+			imageWrapper.isPrimary = 1;
+			// Hide the primary control
+			hide(d[get](picManConfig.image.primaryControl + primaryIndex), 1);
+		},
+		removePrimary: function(index) {
+			var imageWrapper;
 			// Set index to primary if not passed
 			if(!index) {
 				index = primaryIndex;
-			} else if(primaryIndex != index) {
-				//Remove primary Class
-				removeClass(d[get](picManConfig.image.imageWrapper + primaryIndex), "primary");
-				primaryIndex = index;
 			}
-			// Set the primary Class
-			addClass(d[get](picManConfig.image.imageWrapper + primaryIndex), "primary");
+			imageWrapper = getImageWrapper(index);
+			//Remove primary Class and reset sttribute
+			removeClass(getImageWrapper(index), "primary");
+			imageWrapper.isPrimary = 0;
+			// Hide the primary control
+			show(d[get](picManConfig.image.primaryControl + index), 1);			
 		},
 		reflow: function() {
 			var imageWrapper,
 				img,
-				id, 
 				src,
 				i=0, 
 				l=startIndex;  
 			for(; i<l; i++) {
-				id = picManConfig.image.imageWrapper + i;
-				// Check in the cahce first
-				if(!(imageWrapper = imageWrapperCache[id])) {
-					imageWrapper = d[get](id);
-					imageWrapperCache[id] = imageWrapper;
-				}
-				
-				// Remove the primary class from the wrapper
-				removeClass(imageWrapper, "primary");
+				// Get image wrapper from cache
+				imageWrapper = getImageWrapper(i);	
+
+				// Remove the primary from the wrapper
+				imageWrapper.isPrimary && this.removePrimary(i);							
 				
 				if(typeof imageHash[i] == "undefined") { // Check if present in hash else set the content as empty
 					imageWrapper.innerHTML = "";

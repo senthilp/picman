@@ -135,6 +135,12 @@
 			.delete {
 				background-position: -64px 0;
 			}
+			.primcontol {				
+				font-family: cursive,Helvetica,sans-serif;
+				font-size: 14px;
+				height: 16px;
+				width: 16px;					
+			}
 			.progressmeter {
 				padding-top: 70px;
 				color: gray;
@@ -246,6 +252,7 @@
 				picContainer: "picContainer",
 				closeZoomLink: "closeZoomLink",
 				zoomControl: "zoom", 
+				primaryControl: "primary",
 				deleteControl: "delete"
 			}		
 		};		
@@ -271,10 +278,7 @@
 		$html[] = '<div class="icons zoom" title="Zoom"></div>';
 		$html[] = '</div>';
 		$html[] = '<div class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
-		$html[] = '<div class="icons rleft" title="Rotate left"></div>';
-		$html[] = '</div>';
-		$html[] = '<div class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
-		$html[] = '<div class="icons rright" title="Rotate right"></div>';
+		$html[] = '<div id="primary'.$index.'" class="primcontol" title="Make Primary">P</div>';
 		$html[] = '</div>';
 		$html[] = '<div id="delete'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';		
 		$html[] = '<div class="icons delete" title="Delete"></div>';
