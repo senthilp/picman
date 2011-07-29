@@ -239,6 +239,7 @@
 			dropBox: "dropBox",
 			dropText: "dropText",
 			primaryIndex: 0,
+			startIndex: 0,
 			image: { 
 				fileNameLayer: "fileName", 
 				progressMeterLayer: "progressMeter",

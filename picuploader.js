@@ -19,11 +19,11 @@ function PicUploader(dataObj){
 		instance = this,
 		d = document, 
 		get = "getElementById", // Shortcut for document.getElementById to enable compression			
-		imgLoadedState, // Flag to maintain image loaded state
+		imgLoadedState = 1, // Flag to maintain image loaded state. Default is 1 set to 0 when load failed
 		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
 		uploadForm, // Local variable to cache form element
-		fileObj = dataObj.file, // The file input type
+		fileObj = dataObj.file, // The file object in case present in the data object
 		fileNameLayer = d[get](dataObj.fileNameLayer), // File name div
 		progMeterLayer = d[get](dataObj.progressMeterLayer), // Progress Meter layer
 		errorLayer = d[get](dataObj.errorLayer), // Error layer
@@ -188,14 +188,18 @@ function PicUploader(dataObj){
 			// Start the progess meter
 			progMeter.start(getInterval(fileInfo.size));
 
-		},
-		// Decide upload functionality based on browser support 
-		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
-		
+		};
+	
+	// Set the file object for this instance	
+	this.setFileObj = function(file) {
+		fileObj = file;
+	};
 		
 	this.upload = function() {
 		
-		var t = this;
+		var t = this,
+		// Decide upload functionality based on browser support 
+		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
 		
 		// Hide the error message if any
 		hide(errorLayer);
@@ -221,6 +225,8 @@ function PicUploader(dataObj){
 			that = this;
 		
 		if(err) {
+			// Set image loaded state to 0
+			imgLoadedState = 0;	
 			updateError(err.msg); // Update error
 		} else { // Success	
 			// Set the image data object			
@@ -290,15 +296,18 @@ function PicUploader(dataObj){
 	// This method currently acts as a facade to the callback function
 	// Logic can be added if needed
 	this.setPrimary = function() {
-		primaryCb && primaryCb(index);
+		// Call only if the image is uploaded
+		if(imgLoadedState) {
+			primaryCb && primaryCb(index);
+		}
 	};
 	
 	this.showControls = function() {
-		imgLoadedState && imageWrapper.firstChild && show(controls);
+		imageWrapper.firstChild && show(controls);
 	};
 	
 	this.hideControls = function() {
-		imgLoadedState && imageWrapper.firstChild && hide(controls);
+		imageWrapper.firstChild && hide(controls);
 	};
 	
 	this.zoomImage = function() {			

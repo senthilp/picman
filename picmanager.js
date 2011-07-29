@@ -8,8 +8,10 @@ var PicManager = function() {
 		primeFlag, // Flag to denote if setPrimary should be called on init
 		maskLayer, // Mask Layer
 		addLayer, // Add file Layer
-		startIndex = 0, // Static closure variable to maintain the start index when file upload
+		startIndex, // Static closure variable to maintain the start index when file upload
 		inProgress = 0, // Flag to indicate if Pic Manager in working
+		selectedFilesCount, // Static closure to hold the selected files count on each upload
+		fileCounter, // Static closure to keep count of the files uploaded
 		imageHash = [], // Hash to hold the image list in order
 		imageWrapperCache = [], // A cache to hold the images
 		picUploaderHash = [], // Hash to hold the pic uploader instances
@@ -97,14 +99,12 @@ var PicManager = function() {
 					exitFlag = 0;
 					// Highlight border
 					addClass(elem, "dragenter");
-					console.log("Drag Entered");
 				},
 				dragLeave = function(evt) {
 					// Prevent defaults
 					noOpHandler(evt);
 					// remove border highlight if exit flag is set
-					exitFlag && removeClass(elem, "dragenter");					
-					exitFlag? console.log("Drag Exitted with action"): console.log("Drag Exitted without action");	
+					exitFlag && removeClass(elem, "dragenter");						
 					exitFlag = 1;
 				},
 				dragExit = function(evt) {
@@ -141,6 +141,59 @@ var PicManager = function() {
 			// Attach the drop event
 			attach(elem, "drop", drop);
 			attach(elem, "dragdrop", drop); // For FF < 3.5
+		},
+		// Creates picuploader instance
+		createPicloader = function(index, scope) {
+			var picUploader = picUploaderHash[index];
+			// Check the hash first then create an instance
+			if(!picUploader) {
+				picUploader = new PicUploader({
+					index: index,
+					uploadForm: picManConfig.uploadForm,
+					serverURL: picManConfig.serverURL,
+					maskLayer: maskLayer,
+					fileNameLayer: picManConfig.image.fileNameLayer + index, 
+					progressMeterLayer: picManConfig.image.progressMeterLayer + index,
+					progressLayer: picManConfig.image.progressLayer + index,
+					percentLayer: picManConfig.image.percentLayer + index,
+					errorLayer: picManConfig.image.errorLayer + index,
+					imageWrapper: picManConfig.image.imageWrapper + index,
+					controlsLayer: picManConfig.image.controlsLayer + index,
+					overlayLayer: picManConfig.image.overlayLayer + index,
+					zoomLayer: picManConfig.image.zoomLayer + index,
+					picContainer: picManConfig.image.picContainer + index,
+					closeZoomLink: picManConfig.image.closeZoomLink + index,
+					zoomControl: picManConfig.image.zoomControl + index,
+					primaryControl: picManConfig.image.primaryControl + index,
+					deleteControl: picManConfig.image.deleteControl + index,					
+					finalCb: function(index, imgData) {
+						startIndex++;
+						fileCounter++;
+						imageHash[index] = imgData;
+						if(fileCounter == selectedFilesCount) {
+							show(addPicLayer);
+							inProgress = 0;
+							// Set primary if primeFlag is set 
+							if(primeFlag){
+								scope.setPrimary();
+								primeFlag = 0; // Reset prime flag
+							}	
+						}
+					},
+					deleteCb: function(index) {
+						// Remove image from hash
+						scope.removeImageHash(index);
+						// Do a reflow
+						scope.reflow();
+					},
+					primaryCb: function(index) {
+						// Set primary
+						scope.setPrimary(index);
+					}
+				}); 
+				picUploaderHash[index] = picUploader;
+			} 		
+			return picUploader;
 		};
 	
 	return {
@@ -150,10 +203,13 @@ var PicManager = function() {
 			addPicLayer = d[get](picManConfig.addPicLayer);
 			maskLayer = d[get](picManConfig.maskLayer);
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
-			primaryIndex = picManConfig.primaryIndex;	
+			primaryIndex = picManConfig.primaryIndex || 0;	
+			startIndex = picManConfig.startIndex || 0;
 			primeFlag = primaryIndex == 0;
 			// File related operations
-			var t = this, fileElem = d[get](picManConfig.file);
+			var t = this, 
+				i,
+				fileElem = d[get](picManConfig.file);
 			// Setting multiple attribute only if supported
 			if(PicManager.isMultiUploadSupported) {
 				fileElem.setAttribute("multiple", "multiple");
@@ -171,14 +227,16 @@ var PicManager = function() {
 				file = fileElem;
 				t.upload();
 			});
+			// Create Pic Uploader instances if images are already present
+			for(i=0; i<startIndex; i++) {
+				createPicloader(i, t);
+			}
 		},
 		
 		upload: function() {
 			var fileList = getFileList(), 
 				picUploader, 
-				localindex = startIndex, 
-				counter = 0, // counter incremented on each file upload
-				length, // count on the number of files for this upload
+				localIndex = startIndex, 
 				that = this, // Getting the singleton instance
 				i;			
 			
@@ -193,60 +251,20 @@ var PicManager = function() {
 			
 			// Set in progress flag
 			inProgress = 1; 
+			// Set the number of files selected
+			selectedFilesCount = fileList.length;
+			// Reset the file counter
+			fileCounter = 0;
 			
 			// Create and bind picuploader instances 
-			for(i=0, length=fileList.length; i<length; i++) {
-				// Check the hash first then create an instance
-				if(!(picUploader = picUploaderHash[localindex])) {
-					picUploader = new PicUploader({
-						index: localindex,
-						uploadForm: picManConfig.uploadForm,
-						serverURL: picManConfig.serverURL,
-						maskLayer: maskLayer,
-						file: fileList[i], 
-						fileNameLayer: picManConfig.image.fileNameLayer + localindex, 
-						progressMeterLayer: picManConfig.image.progressMeterLayer + localindex,
-						progressLayer: picManConfig.image.progressLayer + localindex,
-						percentLayer: picManConfig.image.percentLayer + localindex,
-						errorLayer: picManConfig.image.errorLayer + localindex,
-						imageWrapper: picManConfig.image.imageWrapper + localindex,
-						controlsLayer: picManConfig.image.controlsLayer + localindex,
-						overlayLayer: picManConfig.image.overlayLayer + localindex,
-						zoomLayer: picManConfig.image.zoomLayer + localindex,
-						picContainer: picManConfig.image.picContainer + localindex,
-						closeZoomLink: picManConfig.image.closeZoomLink + localindex,
-						zoomControl: picManConfig.image.zoomControl + localindex,
-						primaryControl: picManConfig.image.primaryControl + localindex,
-						deleteControl: picManConfig.image.deleteControl + localindex,					
-						finalCb: function(index, imgData) {
-							startIndex++;
-							counter++;
-							imageHash[index] = imgData;
-							if(counter == length) {
-								show(addPicLayer);
-								inProgress = 0;
-								// Set primary if primeFlag is set 
-								if(primeFlag){
-									that.setPrimary();
-									primeFlag = 0; // Reset prime flag
-								}								
-							}
-						},
-						deleteCb: function(index) {
-							// Remove image from hash
-							that.removeImageHash(index);
-							// Do a reflow
-							that.reflow();
-						},
-						primaryCb: function(index) {
-							// Set primary
-							that.setPrimary(index);
-						}
-					}); 
-					picUploaderHash[i] = picUploader;
-				} 
+			for(i=0; i<selectedFilesCount; i++) {
+				// Create the pic uploader instance
+				picUploader = createPicloader(localIndex, that);
+				// Set the file object
+				picUploader.setFileObj(fileList[i]);
+				// Upload the file
 				picUploader.upload();	
-				localindex++;
+				localIndex++;
 			}
 		},	
 		getImageHash: function() {
