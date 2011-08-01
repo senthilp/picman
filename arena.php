@@ -240,6 +240,7 @@
 			dropText: "dropText",
 			primaryIndex: 0,
 			startIndex: 0,
+			imageHash: null,
 			image: { 
 				fileNameLayer: "fileName", 
 				progressMeterLayer: "progressMeter",

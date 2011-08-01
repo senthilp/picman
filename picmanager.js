@@ -209,6 +209,7 @@ var PicManager = function() {
 			// File related operations
 			var t = this, 
 				i,
+				localImageHash, // A local variable to hold the image hash from the picManConfig
 				fileElem = d[get](picManConfig.file);
 			// Setting multiple attribute only if supported
 			if(PicManager.isMultiUploadSupported) {
@@ -230,6 +231,10 @@ var PicManager = function() {
 			// Create Pic Uploader instances if images are already present
 			for(i=0; i<startIndex; i++) {
 				createPicloader(i, t);
+				// Initialize the image hash since images are already present
+				if(picManConfig.imageHash && (localImageHash=picManConfig.imageHash[i])){
+					imageHash[i] = {thumbnailUrl: localImageHash.thumbnailUrl, mainUrl: localImageHash.mainlUrl};
+				}
 			}
 		},
 		
