@@ -326,7 +326,7 @@ var PicManager = function() {
 				if(typeof imageHash[i] == "undefined") { // Check if present in hash else set the content as empty
 					imageWrapper.innerHTML = "";
 				} else { 
-					src = imageHash[i].error? "": imageHash[i].mainUrl;
+					src = imageHash[i].error? "": imageHash[i].thumbnailUrl;
 					if(img = imageWrapper.firstChild) { // Get the image and set the source
 						// TODO set error image URL and set Thumbnail URL accordingly
 						img.src=src;	

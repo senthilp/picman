@@ -237,7 +237,7 @@ function PicUploader(dataObj){
 			// Clear the image wrapper first
 			updateContent(imageWrapper, "");				
 			// Create and add the image
-			imageWrapper.appendChild(thumbnailImage = createImage(res.data.picURL, 131, 200));
+			imageWrapper.appendChild(thumbnailImage = createImage(res.data.thumbNail, 131, 200));
 			// Attache the events
 			
 			// Create the canvas element
