@@ -236,6 +236,7 @@
 			maskLayer: "mask",
 			addPicLayer: "add",
 			serverURL: "upload.php",
+			errorImage: "no-pic-error.png",
 			dropBox: "dropBox",
 			dropText: "dropText",
 			primaryIndex: 0,

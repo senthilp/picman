@@ -36,6 +36,7 @@ function PicUploader(dataObj){
 		deleteCb = dataObj.deleteCb, // Delete callback to call after user deletes an image
 		primaryCb = dataObj.primaryCb, // Primary callback to call after user an image as primary
 		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
+		errorImage = dataObj.errorImage || PicUploader.errorImage, // Get the error Image to show for upload failures
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -55,10 +56,6 @@ function PicUploader(dataObj){
 		},
 		updateContent = function(elem, content) {
 			elem.innerHTML = content;
-		},
-		updateError = function(msg) {
-			updateContent(errorLayer, msg);
-			show(errorLayer);
 		},
 		getInterval = function(size) {
 			// Getting it for the 90th percentile
@@ -225,20 +222,23 @@ function PicUploader(dataObj){
 			that = this;
 		
 		if(err) {
-			// Set image loaded state to 0
+			// Set the error Image
+			this.setPicture(errorImage, res.error.msg || res.error);
+			// Call the final complete to set the state accordingly
+			this.complete(res);
+			// Set image loaded state to 0 since this is error scenario
 			imgLoadedState = 0;	
-			updateError(err.msg); // Update error
 		} else { // Success	
 			// Set the image data object			
 			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.picURL};
 			// Load the image before completing the progress meter, so the images are shown seemlessly		
 			// Hide the display to preserve the dimensions
 			hide(imageWrapper, 1);
-			// Clear the image wrapper first
-			updateContent(imageWrapper, "");				
-			// Create and add the image
-			imageWrapper.appendChild(thumbnailImage = createImage(res.data.thumbNail, 131, 200));
-			// Attache the events
+			// Set the thumbnail picture
+			this.setPicture(res.data.thumbNail);
+			// Create image in zoom overlay
+			updateContent(zoomImageLayer, "");
+			zoomImageLayer.appendChild(createImage(res.data.picURL, 531, 800));			
 			
 			// Create the canvas element
 			//(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
@@ -248,8 +248,7 @@ function PicUploader(dataObj){
 				return function() {
 							that.complete(r);
 						};
-				}(res));
-	
+				}(res));	
 		}	
 				
 		// Call the final callback
@@ -269,14 +268,23 @@ function PicUploader(dataObj){
 		show(imageWrapper, 1);
 		
 		// Show only when mouse over
-		// show(controls);
-		
-		// Create image in zoom overlay
-		updateContent(zoomImageLayer, "");
-		zoomImageLayer.appendChild(createImage(res.data.picURL, 531, 800));
-		
+		// show(controls);	
+	};
+	
+	this.setPicture = function(src, altText) {
+		if(src) {
+			if(thumbnailImage = imageWrapper.firstChild) { // Get the image if it is already created and set the source
+				thumbnailImage.src=src;	
+			} else { // Create image and append
+				imageWrapper.appendChild(thumbnailImage = createImage(src, 131, 200));
+			}			
+			altText && (thumbnailImage.title = altText);
+		} else {
+			// If src not present clean up the image wrapper
+			updateContent(imageWrapper, "");	
+		}
 		// Update the image loaded state
-		imgLoadedState = 1;			
+		imgLoadedState = 1;		
 	};
 	
 	this.deleteImage = function() {
@@ -303,11 +311,11 @@ function PicUploader(dataObj){
 	};
 	
 	this.showControls = function() {
-		imageWrapper.firstChild && show(controls);
+		imgLoadedState && imageWrapper.firstChild && show(controls);
 	};
 	
 	this.hideControls = function() {
-		imageWrapper.firstChild && hide(controls);
+		imgLoadedState && imageWrapper.firstChild && hide(controls);
 	};
 	
 	this.zoomImage = function() {			
@@ -375,5 +383,7 @@ function PicUploader(dataObj){
 		instance.setPrimary();
 	});	
 };
-
+// Static Server URL
 PicUploader.serverURL = "upload.php";
+// Static error image
+PicUploader.errorImage = "no-pic-error.png";

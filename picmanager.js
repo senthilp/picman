@@ -60,6 +60,26 @@ var PicManager = function() {
 			}
 			return imageWrapper;
 		}, 
+		cleanImageHash = function() {
+			var i = 0,
+				count = 0,
+				index = 0,
+				l = imageHash.length,
+				tempHash =[];
+			
+			for(; i<l; i++) {
+				// Add to tempHash if not error
+				if(!imageHash[i].error) {
+					tempHash[count++] = imageHash[i];
+				} else if(primaryIndex > i) {// If primary index is greater than removed index, increment index
+					index++;
+				}
+			}			
+			// tempHash becomes the main imageHash			
+			imageHash = tempHash;
+			// Reduce the index from the primaryIndex
+			primaryIndex -= index;
+		},
 		getFileList = function() {
 			var fileList, i, l, current;
 			
@@ -151,6 +171,7 @@ var PicManager = function() {
 					index: index,
 					uploadForm: picManConfig.uploadForm,
 					serverURL: picManConfig.serverURL,
+					errorImage: picManConfig.errorImage,
 					maskLayer: maskLayer,
 					fileNameLayer: picManConfig.image.fileNameLayer + index, 
 					progressMeterLayer: picManConfig.image.progressMeterLayer + index,
@@ -290,6 +311,10 @@ var PicManager = function() {
 				this.removePrimary(primaryIndex);
 				primaryIndex = index;
 			}
+			// Check for error first
+			if(imageHash[primaryIndex].error) {
+				return;
+			}
 			imageWrapper = getImageWrapper(primaryIndex);
 			// Set the primary Class and set sttribute
 			addClass(imageWrapper, "primary");			
@@ -316,6 +341,10 @@ var PicManager = function() {
 				src,
 				i=0, 
 				l=startIndex;  
+
+			// Clean the image hash first to reomve the errors
+			cleanImageHash();
+			
 			for(; i<l; i++) {
 				// Get image wrapper from cache
 				imageWrapper = getImageWrapper(i);	
@@ -323,17 +352,9 @@ var PicManager = function() {
 				// Remove the primary from the wrapper
 				imageWrapper.isPrimary && this.removePrimary(i);							
 				
-				if(typeof imageHash[i] == "undefined") { // Check if present in hash else set the content as empty
-					imageWrapper.innerHTML = "";
-				} else { 
-					src = imageHash[i].error? "": imageHash[i].thumbnailUrl;
-					if(img = imageWrapper.firstChild) { // Get the image and set the source
-						// TODO set error image URL and set Thumbnail URL accordingly
-						img.src=src;	
-					} else { // Create image and append
-						imageWrapper.appendChild(createImage(src, 131, 200));
-					}
-				}
+				// Check if present in hash else set the src as null
+				src = typeof imageHash[i] != "undefined"?imageHash[i].thumbnailUrl: null;				 
+				picUploaderHash[i].setPicture(src);
 			}
 			// Reset start index
 			startIndex = imageHash.length;
