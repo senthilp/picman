@@ -257,6 +257,8 @@ var PicManager = function() {
 					imageHash[i] = {thumbnailUrl: localImageHash.thumbnailUrl, mainUrl: localImageHash.mainlUrl};
 				}
 			}
+			// Set primary flag to image wrapper
+			startIndex && (getImageWrapper(primaryIndex).isPrimary = 1);
 		},
 		
 		upload: function() {

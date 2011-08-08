@@ -46,7 +46,7 @@ function ProgressMeter(dataObj) {
 		isComplete = 1;
 		callback = cb;
 		this.stop();
-		this.start(10);
+		this.start(5);
 	};
 }
 

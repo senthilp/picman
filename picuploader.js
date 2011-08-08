@@ -3,6 +3,8 @@ function PicUploader(dataObj){
 		 * UPLOAD_RATE determines the speed in which the progree meter should run
 		 * based on the size of the image uploaded.
 		 * 
+		 * Can be overriden by application
+		 * 
 		 * It is calculated based on a median time (in milliseconds) required for
 		 * uploading an image of size 4MB (~ 4046357 bytes)
 		 * 
@@ -14,12 +16,33 @@ function PicUploader(dataObj){
 		 */	
 	var UPLOAD_RATE = 0.00297,
 		/**
+		 * Uploading an image to server has 2 parts
+		 * 	- Browser uploading the file to the server on HTTP
+		 *  - The server processing the file and either calling another webservice or
+		 *    doing some manupulation on them before serving
+		 * 
+		 * The UPLOAD_RATE covers only the browser part of the equation and on investigation
+		 * it proves this accounts only 20% of the total time and remaining 80% (0.8) is taken 
+		 * by the server, since servers take more time processing the image file.
+		 * 
+		 * SERVER_RATIO accounts for that portion of equation, this can be overriden by the 
+		 * application
+		 *
+		 * @constant SERVER_RATIO
+		 * @private
+		 */			
+		SERVER_RATIO = 0.8,
+		/**
 		 * Private static variables 
 		 */	
 		instance = this,
 		d = document, 
 		get = "getElementById", // Shortcut for document.getElementById to enable compression			
 		imgLoadedState = 1, // Flag to maintain image loaded state. Default is 1 set to 0 when load failed
+		uploadRate = dataObj.uploadRate || UPLOAD_RATE, // Get the upload rate from data object if available
+		serverRatio = dataObj.serverRatio || SERVER_RATIO, // Get the server ratio from data object if available
+		uploadRatio = 1 - serverRatio, // Upload ratio calculated from server ratio
+		serverRate = uploadRate * serverRatio, // Server rate calculated dynamically from serverRatio and uploadRate
 		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
 		uploadForm, // Local variable to cache form element
@@ -57,9 +80,11 @@ function PicUploader(dataObj){
 		updateContent = function(elem, content) {
 			elem.innerHTML = content;
 		},
-		getInterval = function(size) {
+		getInterval = function(size, rate, percentCompleted) {
+			!rate && (rate = uploadRate);
+			!percentCompleted && (percentCompleted = 0);
 			// Getting it for the 90th percentile
-			var interval = Math.abs((size * UPLOAD_RATE)/90);
+			var interval = Math.abs((size * uploadRate)/(90 - percentCompleted));
 			// If interval is less that 5ms then default it to 5ms
 			// Due to clamping successive intervals DOM_CLAMP_TIMEOUT_NESTING_LEVEL 
 			// https://developer.mozilla.org/en/DOM/window.setTimeout#Minimum_delay_and_timeout_nesting
@@ -122,11 +147,14 @@ function PicUploader(dataObj){
 			
 			xhr.upload.onprogress = function(e){
 	            if (e.lengthComputable){	
-	            	var percentUpload = Math.round(e.loaded / e.total * 100);
-	            	if(percentUpload > 90) {
-	            		percentUpload = 90;
-	            	} 
-	            	progMeter.progress(percentUpload);
+	            	var percentUpload = Math.round((e.loaded / e.total * 100) * uploadRatio), // Multiple by upload ratio to get the exact count,
+	            		uploadPercent = uploadRatio * 100;
+	            	if(percentUpload >= uploadPercent) {
+	            		// Start the progress meter based on server rate
+	            		progMeter.start(getInterval(fileInfo.size, serverRate, uploadPercent));
+	            	} else {
+	            		progMeter.progress(percentUpload);
+	            	}
 	            }
 	        };
 	        
@@ -223,11 +251,16 @@ function PicUploader(dataObj){
 		
 		if(err) {
 			// Set the error Image
-			this.setPicture(errorImage, res.error.msg || res.error);
+			this.setPicture(errorImage, err.msg || err);
 			// Call the final complete to set the state accordingly
 			this.complete(res);
 			// Set image loaded state to 0 since this is error scenario
 			imgLoadedState = 0;	
+			// Stop the progress meter and set to 0
+			progMeter.stop();
+			progMeter.progress(0);
+			// Call the final callback
+			finalCb && finalCb(index, imgData);			
 		} else { // Success	
 			// Set the image data object			
 			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.picURL};
@@ -247,12 +280,11 @@ function PicUploader(dataObj){
 			progMeter.complete(function(r) {
 				return function() {
 							that.complete(r);
+							// Call the final callback
+							finalCb && finalCb(index, imgData);
 						};
 				}(res));	
-		}	
-				
-		// Call the final callback
-		finalCb && finalCb(index, imgData);
+		}					
 	};
 	
 	this.complete = function(res) {
@@ -326,40 +358,6 @@ function PicUploader(dataObj){
 	this.closeOverlay = function() {
 		hide(maskLayer, 1);
 		hide(overlay, 1);			
-	};
-	
-	this.rotateLeft = function() {
-		if(!canvasElem) {
-			return;
-		}
-		var cContext = canvasElem.getContext('2d'),
-			cw = thumbnailImage.width, 
-			ch = thumbnailImage.height, 
-			cx = 0, 
-			cy = 0,
-			degree = 0;
-		//   Calculate new canvas size and x/y coorditates for image
-		switch(degree){
-		     case 90:
-		          cw = thumbnailImage.height;
-		          ch = thumbnailImage.width;
-		          cy = thumbnailImage.height * (-1);
-		          break;
-		     case 180:
-		          cx = thumbnailImage.width * (-1);
-		          cy = thumbnailImage.height * (-1);
-		          break;
-		     case 270:
-		          cw = thumbnailImage.height;
-		          ch = thumbnailImage.width;
-		          cx = thumbnailImage.width * (-1);
-		          break;
-		}
-		//  Rotate image
-		canvasElem.setAttribute('width', cw);
-		canvasElem.setAttribute('height', ch);
-		cContext.rotate(degree * Math.PI / 180);
-		cContext.drawImage(thumbnailImage, cx, cy);			
 	};
 	
 	// Bind events
