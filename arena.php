@@ -17,6 +17,8 @@
 	<TITLE>Picture Uploader</TITLE>
 	<style type="text/css">
 			body {
+				font-family: Arial,Helvetica,sans-serif;
+				font-size: 12px;			
 				margin: 0 auto;
 				width: 960px;
 			}
@@ -31,25 +33,23 @@
 			}
 			.piccontainer {				
 				width: 200px;
-				margin: 10px 10px 0;
+				margin-right: 10px;
 				float: left;				
 			}
 			.primary {
 				border: 3px solid brown;
 			}
 			.picman {
-				font-family: Arial,Helvetica,sans-serif;
-				font-size: 12px;
 				font-weight: bold;
 			}
 			.dropbox {			
     			border-radius: 2px 2px 2px 2px;
-    			height: 410px;
+    			height: 360px;
     			margin-top: 20px;    			
-    			padding-left: 35px;
+    			padding: 20px 0 0 60px;
 			}
 			.droptext {
-				visibility: hidden;
+				display: none;
 				color: #CCCCCC
 			}
 			.activate {
@@ -98,7 +98,7 @@
 			}
 			.error {
 				color: red;
-				visibility: hidden;
+				display: none;
 				height: 12px;
 			}
 			.picbottom {
@@ -195,6 +195,9 @@
 			.clear {
 				clear: both;
 			}
+			.videodemo {
+				margin-top: 20px;
+			}
 	</style>	
 </HEAD>
 <BODY>
@@ -225,6 +228,9 @@
 			?>	
 		</div>		
 	</div>	
+	<div id="videoDemo" class="clear videodemo">
+		<a target="_blank" href="http://www.youtube.com/watch?v=68rNuzYnxOI">Quick Demo</a>
+	</div>
 	<script src="progressmeter.js"></script>
 	<script src="picuploader.js"></script>
 	<script src="picmanager.js"></script>
@@ -262,6 +268,7 @@
 		// Initialize PicMan
 		PicManager.init(PicManConfig);	
 	</script>		
+	<script src="http://webplayer.yahooapis.com/player-beta.js"></script> 
 </BODY>
 </HTML>
 <?php 			

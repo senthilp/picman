@@ -1,5 +1,13 @@
 var PicManager = function() {
-	var d = document,
+	var FILE_TYPE_MATRIX = {
+			"jpeg": 1,
+			"jpg": 1,
+			"tif": 1,
+			"png": 1,
+			"bmp": 1,
+			"gif": 1
+		},
+		d = document,
 		get = "getElementById",
 		MAX_LIMIT, // Max number of files allowed to be uploaded
 		picManConfig, // Pic man config bean
@@ -80,8 +88,15 @@ var PicManager = function() {
 			// Reduce the index from the primaryIndex
 			primaryIndex -= index;
 		},
+		checkFileType = function(fileName) {
+			if(!fileName) {
+				return;
+			}
+			var ext = fileName.match(/\.([^\.]+)$/);
+			return ext && ext[1]? FILE_TYPE_MATRIX[ext[1].toLowerCase()]: 1;
+		},
 		getFileList = function() {
-			var fileList, i, l, current;
+			var fileList, i, l, current, fileName, fileTypeError;
 			
 			if(!file ) {
 				fileList = {error: "No file found"};
@@ -92,14 +107,30 @@ var PicManager = function() {
 				if(PicManager.isMultiUploadSupported && file.files) {
 					for(i=0, l=file.files.length; i < l; i++) {
 						current = file.files[i];
-						fileList.push({file: current, name: current.name || current.fileName, size: current.size, multiUpload: 1});
+						fileName = current.name;
+						// Check the file type
+						if(!checkFileType(fileName)) {
+							fileTypeError = true;
+							break;
+						}
+						fileList.push({file: current, name: fileName || current.fileName, size: current.size, multiUpload: 1});
 					}
-				} else {
-					// IE 7 & 8 which does not support multi file upload
-					// Set size as mdedian 4MB					
-					fileList.push({file: file, name: file.value.replace(/.*(\/|\\)/, ""), size: 4046357, multiUpload: 0});
+				} else {	
+					fileName = file.value.replace(/.*(\/|\\)/, "");
+					// Check the file type
+					if(checkFileType(fileName)) {
+						// IE 7 & 8 which does not support multi file upload
+						// Set size as mdedian 4MB					
+						fileList.push({file: file, name: fileName, size: 4046357, multiUpload: 0});						
+					} else {
+						fileTypeError = true;
+					}
 				}
 			}
+			// If file type error set the error accordingly
+			if(fileTypeError) {
+				fileList = {error: "File type not supported. Only image types \"jpeg, jpg, tif, png, gif, bmp\""};
+			} 
 			
 			return fileList;
 		},
@@ -192,7 +223,7 @@ var PicManager = function() {
 						fileCounter++;
 						imageHash[index] = imgData;
 						if(fileCounter == selectedFilesCount) {
-							show(addPicLayer);
+							(startIndex < MAX_LIMIT) && show(addPicLayer);
 							inProgress = 0;
 							// Set primary if primeFlag is set 
 							if(primeFlag){
@@ -206,6 +237,8 @@ var PicManager = function() {
 						scope.removeImageHash(index);
 						// Do a reflow
 						scope.reflow();
+						// Show add layer if # of images less than MAX_LIMIT
+						(startIndex < MAX_LIMIT) && show(addPicLayer);
 					},
 					primaryCb: function(index) {
 						// Set primary
@@ -237,7 +270,7 @@ var PicManager = function() {
 				fileElem.setAttribute("multiple", "multiple");
 				// Activate the drop box & show the drop text
 				activateDropbox(picManConfig.dropBox);
-				show(d[get](picManConfig.dropText));
+				show(d[get](picManConfig.dropText), 1);
 			}
 			// Attaching on change event 
 			attach(fileElem, "change", function() {
