@@ -83,7 +83,7 @@
 			.browse {
 				opacity: 0;
 				filter:alpha(opacity=0); 
-				font-size: 20px; 
+				font-size: 40px; 
 				height: 20px; 
 				position: absolute; 
 				right: 0px; 

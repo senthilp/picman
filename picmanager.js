@@ -223,10 +223,13 @@ var PicManager = function() {
 						fileCounter++;
 						imageHash[index] = imgData;
 						if(fileCounter == selectedFilesCount) {
+							// Show add pic layer only if files upload less than MAX_LIMIT
 							(startIndex < MAX_LIMIT) && show(addPicLayer);
+							// Remove the mash
+							hide(maskLayer, 1);
 							inProgress = 0;
 							// Set primary if primeFlag is set 
-							if(primeFlag){
+							if(primeFlag && !imageHash[primaryIndex].error){
 								scope.setPrimary();
 								primeFlag = 0; // Reset prime flag
 							}	
@@ -301,14 +304,16 @@ var PicManager = function() {
 				that = this, // Getting the singleton instance
 				i;			
 			
-			// Check for errors first
-			if(fileList.error) {
-				alert(fileList.error);
+			// Check for errors or empty list first			
+			if(!fileList.length || fileList.error) {
+				fileList.error && alert(fileList.error);
 				return;
 			}
 			
 			// Hide the app pic layer
 			hide(addPicLayer);
+			// Show the Mask
+			show(maskLayer, 1);
 			
 			// Set in progress flag
 			inProgress = 1; 
