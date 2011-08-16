@@ -113,6 +113,10 @@ var PicManager = function() {
 							fileTypeError = true;
 							break;
 						}
+						// If file size is empty do not add to file list
+						if(!current.size) {
+							continue;
+						}
 						fileList.push({file: current, name: fileName || current.fileName, size: current.size, multiUpload: 1});
 					}
 				} else {	
