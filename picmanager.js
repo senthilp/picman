@@ -124,8 +124,8 @@ var PicManager = function() {
 					// Check the file type
 					if(checkFileType(fileName)) {
 						// IE 7 & 8 which does not support multi file upload
-						// Set size as mdedian 4MB					
-						fileList.push({file: file, name: fileName, size: 4046357, multiUpload: 0});						
+						// Set size as NA, since not known					
+						fileList.push({file: file, name: fileName, size: 'NA', multiUpload: 0});						
 					} else {
 						fileTypeError = true;
 					}
@@ -198,7 +198,7 @@ var PicManager = function() {
 			attach(elem, "dragdrop", drop); // For FF < 3.5
 		},
 		// Creates picuploader instance
-		createPicloader = function(index, scope) {
+		createPicuploader = function(index, scope) {
 			var picUploader = picUploaderHash[index];
 			// Check the hash first then create an instance
 			if(!picUploader) {
@@ -291,7 +291,7 @@ var PicManager = function() {
 			});
 			// Create Pic Uploader instances if images are already present
 			for(i=0; i<startIndex; i++) {
-				createPicloader(i, t);
+				createPicuploader(i, t);
 				// Initialize the image hash since images are already present
 				if(picManConfig.imageHash && (localImageHash=picManConfig.imageHash[i])){
 					imageHash[i] = {thumbnailUrl: localImageHash.thumbnailUrl, mainUrl: localImageHash.mainlUrl};
@@ -329,7 +329,7 @@ var PicManager = function() {
 			// Create and bind picuploader instances 
 			for(i=0; i<selectedFilesCount; i++) {
 				// Create the pic uploader instance
-				picUploader = createPicloader(localIndex, that);
+				picUploader = createPicuploader(localIndex, that);
 				// Set the file object
 				picUploader.setFileObj(fileList[i]);
 				// Upload the file

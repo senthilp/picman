@@ -218,6 +218,10 @@ function PicUploader(dataObj){
 	// Set the file object for this instance	
 	this.setFileObj = function(file) {
 		fileObj = file;
+		// If size not available set median size
+		if(fileObj.size == 'NA') {
+			fileObj.size = 4046357;
+		}
 	};
 		
 	this.upload = function() {
