@@ -163,7 +163,7 @@
 			.overlay {
 				position: absolute;
 				display: none;
-				z-index: 2;
+				z-index: 2000;
 				left: 25%;
 				top: 25%;
 			}						
@@ -184,13 +184,14 @@
 			.mask {
 				opacity: 0;
 				filter:alpha(opacity=0);
+				background-color: #FFFFFF;
 				left: 0;
 				top: 0;
 				width: 100%;
 				height: 100%;
-				z-index: 1;
+				z-index: 1000;
 				position: absolute;
-				display: none;			
+				display: none;							
 			}
 			.clear {
 				clear: both;

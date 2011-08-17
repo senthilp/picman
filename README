@@ -1,6 +1,7 @@
 TODO
-1. Fix thumbnail pic size
-2. better error handling
-3. Creation of error URL
-4. Documentation
-5. Make median file size in picuploader
+1. better error handling - remove error div and append error message
+2. Documentation
+3. Make median file size, total time and server ratio public in picuploader
+4. Fix the enlarge image miss match
+5. FIX IE Allignment issue for controls
+6. create Utils
