@@ -106,12 +106,11 @@
 				margin: 5px 0;				
 			}
 			.controls {
-				margin: 0 auto 1px;
-				text-align: center;
+				margin: 0 69px 1px;
 				visibility: hidden;
 			}
 			.controls div {
-				display: inline-block;				
+				float: left;				
 			}
 			.controls div.icon-hover {
 				border: 1px solid white;
@@ -288,13 +287,14 @@
 		$html[] = '<div id="zoom'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
 		$html[] = '<div class="icons zoom" title="Zoom"></div>';
 		$html[] = '</div>';
-		$html[] = '<div class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
-		$html[] = '<div id="primary'.$index.'" class="primcontol" title="Make Primary">P</div>';
+		$html[] = '<div id="primary'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
+		$html[] = '<div class="primcontol" title="Make Primary">P</div>';
 		$html[] = '</div>';
 		$html[] = '<div id="delete'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';		
 		$html[] = '<div class="icons delete" title="Delete"></div>';
 		$html[] = '</div>';		
 		$html[] = '</div>';
+		$html[] = '<div class="clear"></div>';
 		$html[] = '</div>';
 		$html[] = '<div class="picholder border">';
 		$html[] = '<div id="imageWrapper'.$index.'"></div>';
