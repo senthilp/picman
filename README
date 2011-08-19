@@ -1,6 +1,5 @@
 TODO
 1. better error handling - remove error div and append error message
 2. Documentation
-3. Make median file size, total time and server ratio public in picuploader
 4. Fix the enlarge image miss match
 6. create Utils & CSS file

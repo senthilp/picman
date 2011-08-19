@@ -267,6 +267,11 @@ var PicManager = function() {
 			primaryIndex = picManConfig.primaryIndex || 0;	
 			startIndex = picManConfig.startIndex || 0;
 			primeFlag = primaryIndex == 0;
+			// Overriding the PicUploader static attributes based on config
+			picManConfig.medianTime && (PicUploader.MEDIAN_TIME = picManConfig.medianTime);
+			picManConfig.medianSize && (PicUploader.MEDIAN_SIZE = picManConfig.medianSize);
+			picManConfig.serverTime && (PicUploader.SERVER_TIME = picManConfig.serverTime);
+			
 			// File related operations
 			var t = this, 
 				i,
