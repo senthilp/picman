@@ -24,7 +24,7 @@ function ProgressMeter(dataObj) {
 			// If progressPercent is 90 or 100 clear the interval first
 			// If 90% and still not complete pause the meter and wait for signal
 			progressPercent == 90 && !isComplete && t.stop();
-			if(progressPercent == 100) {
+			if(progressPercent >= 100) {
 				t.stop();
 				// Call the finalComplete method
 				finalComplete();

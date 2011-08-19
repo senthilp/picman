@@ -268,7 +268,7 @@
 		// Initialize PicMan
 		PicManager.init(PicManConfig);	
 	</script>		
-	<script src="http://webplayer.yahooapis.com/player-beta.js"></script> 
+	<!-- <script src="http://webplayer.yahooapis.com/player-beta.js"></script> --> 
 </BODY>
 </HTML>
 <?php 			

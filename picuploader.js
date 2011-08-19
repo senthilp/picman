@@ -1,37 +1,40 @@
 function PicUploader(dataObj){ 
+	/**
+	 * Math attributes for acurate progress meter 
+	 */	
+	var medianTime = dataObj.medianTime || PicUploader.MEDIAN_TIME, // Override from data object if avialble
+		medianSize = dataObj.medianSize || PicUploader.MEDIAN_SIZE, // Override from data object if avialble
+		serverTime = dataObj.serverTime || PicUploader.SERVER_TIME, // Override from data object if avialble
 		/**
-		 * UPLOAD_RATE determines the speed in which the progree meter should run
+		 * uploadRate determines the speed in which the progree meter should run
 		 * based on the size of the image uploaded.
 		 * 
-		 * Can be overriden by application
+		 * It is calculated based on a MEDIAN_TIME (in milliseconds) required for
+		 * uploading an image of MEDIAN_SIZE size 
 		 * 
-		 * It is calculated based on a median time (in milliseconds) required for
-		 * uploading an image of size 4MB (~ 4046357 bytes)
-		 * 
-		 * Median time for an image size 4046357 bytes is 12000 milliseconds
-		 * UPLOAD_RATE = 12000 / 4046357 = 0.00297 (time / size)
+		 * Median time for an image size MEDIAN_SIZE bytes is MEDIAN_TIME milliseconds
+		 * uploadRate = MEDIAN_TIME / MEDIAN_SIZE (time / size)
 		 *
-		 * @constant UPLOAD_RATE
+		 * @property uploadRate
 		 * @private
 		 */	
-	var UPLOAD_RATE = 0.00297,
+		uploadRate = medianTime / medianSize,
 		/**
-		 * Uploading an image to server has 2 parts
-		 * 	- Browser uploading the file to the server on HTTP
-		 *  - The server processing the file and either calling another webservice or
-		 *    doing some manupulation on them before serving
+		 * serverRate determines the speed in which server processes the image and
+		 * sends a response
 		 * 
-		 * The UPLOAD_RATE covers only the browser part of the equation and on investigation
-		 * it proves this accounts only 20% of the total time and remaining 80% (0.8) is taken 
-		 * by the server, since servers take more time processing the image file.
+		 * It is calculated based on a SERVER_TIME (in milliseconds) required for
+		 * uploading an image of MEDIAN_SIZE size 
 		 * 
-		 * SERVER_RATIO accounts for that portion of equation, this can be overriden by the 
-		 * application
+		 * Median time for an image size MEDIAN_SIZE bytes is SERVER_TIME milliseconds
+		 * serverRate = SERVER_TIME / MEDIAN_SIZE (time / size)
 		 *
-		 * @constant SERVER_RATIO
+		 * @constant serverRate
 		 * @private
-		 */			
-		SERVER_RATIO = 0.8,
+		 */					
+		serverRate = serverTime / medianSize,
+		serverRatio = serverRate/uploadRate, // Get the server ratio from data object if available
+		uploadRatio = 1 - serverRatio, // Upload ratio calculated from server ratio		
 		/**
 		 * Private static variables 
 		 */	
@@ -39,10 +42,6 @@ function PicUploader(dataObj){
 		d = document, 
 		get = "getElementById", // Shortcut for document.getElementById to enable compression			
 		imgLoadedState = 1, // Flag to maintain image loaded state. Default is 1 set to 0 when load failed
-		uploadRate = dataObj.uploadRate || UPLOAD_RATE, // Get the upload rate from data object if available
-		serverRatio = dataObj.serverRatio || SERVER_RATIO, // Get the server ratio from data object if available
-		uploadRatio = 1 - serverRatio, // Upload ratio calculated from server ratio
-		serverRate = uploadRate * serverRatio, // Server rate calculated dynamically from serverRatio and uploadRate
 		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
 		uploadForm, // Local variable to cache form element
@@ -58,8 +57,8 @@ function PicUploader(dataObj){
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		deleteCb = dataObj.deleteCb, // Delete callback to call after user deletes an image
 		primaryCb = dataObj.primaryCb, // Primary callback to call after user an image as primary
-		serverURL = dataObj.serverURL || PicUploader.serverURL, // Get the server URL for uploading the picture
-		errorImage = dataObj.errorImage || PicUploader.errorImage, // Get the error Image to show for upload failures
+		serverURL = dataObj.serverURL || PicUploader.SERVER_URL, // Get the server URL for uploading the picture
+		errorImage = dataObj.errorImage || PicUploader.ERROR_IMAGE, // Get the error Image to show for upload failures
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
@@ -143,13 +142,20 @@ function PicUploader(dataObj){
 		    }			
 		},
 		uploadAJAX = function(fileInfo, cb) {
-			var xhr = new XMLHttpRequest();
+			var xhr = new XMLHttpRequest(),
+				clientUploadDone = 0;
 			
 			xhr.upload.onprogress = function(e){
-	            if (e.lengthComputable){	
-	            	var percentUpload = Math.round((e.loaded / e.total * 100) * uploadRatio), // Multiple by upload ratio to get the exact count,
-	            		uploadPercent = uploadRatio * 100;
+	            if (e.lengthComputable){
+	            	// If client upload is done then server upload has started so return immediately
+	            	if(clientUploadDone) {
+	            		return;
+	            	}
+	            	var percentUpload = Math.round(Math.round(e.loaded / e.total * 100) * uploadRatio), // Multiply by upload ratio to get the exact count,
+	            		uploadPercent = Math.round(uploadRatio * 100) - 1; // Subtracting 1 to since for small files after 99% the file is already uploaded
+	            	console.log("percentUpload: " + percentUpload);
 	            	if(percentUpload >= uploadPercent) {
+	            		clientUploadDone = 1;
 	            		// Start the progress meter based on server rate
 	            		progMeter.start(getInterval(fileInfo.size, serverRate, uploadPercent));
 	            	} else {
@@ -220,7 +226,7 @@ function PicUploader(dataObj){
 		fileObj = file;
 		// If size not available set median size
 		if(fileObj.size == 'NA') {
-			fileObj.size = 4046357;
+			fileObj.size = medianSize;
 		}
 	};
 		
@@ -386,6 +392,65 @@ function PicUploader(dataObj){
 	});	
 };
 // Static Server URL
-PicUploader.serverURL = "upload.php";
+PicUploader.SERVER_URL = "upload.php";
 // Static error image
-PicUploader.errorImage = "no-pic-error.png";
+PicUploader.ERROR_IMAGE = "no-pic-error.png";
+
+/**
+ * MEDIAN_SIZE property denotes median size of the images that users
+ * upload. This is calculated based on history data or dry runs of the
+ * picture manager. 
+ * 
+ * The more close to reality the value is the more acurate the progress
+ * meter will function
+ * 
+ * Current value based on historic data is ~4MB 4046357 bytes, should be
+ * overriden at application level as needed
+ *
+ * @property MEDIAN_SIZE
+ * @static 
+ * @public
+ */	
+PicUploader.MEDIAN_SIZE = 4046357;
+
+/**
+ * MEDIAN_TIME property denotes median time taken to uplod 1 image of MEDIAN_SIZE
+ * to the server. This is calculated based on history data or dry runs of the
+ * picture manager. 
+ * 
+ * The more close to reality the value is the more acurate the progress
+ * meter will function
+ * 
+ * Current value based on local server date is 12000 milliseconds for MEDIAN_SIZE, 
+ * Should be overriden at application level as needed
+ *
+ * @property MEDIAN_TIME
+ * @override
+ * @static 
+ * @public
+ */	
+PicUploader.MEDIAN_TIME = 12000;
+
+/**
+ * Uploading an image to server has 2 parts
+ * 	- Browser uploading the file to the server on HTTP
+ *  - The server processing the file and either calling another webservice or
+ *    doing some manupulation on them before serving
+ * 
+ * The file upload covers only the browser part of the equation and on investigation
+ * it proves that servers take some time to process and store the image. 
+ * 
+ * SERVER_TIME accounts for that portion of equation, this can be overriden by the 
+ * application.
+ * 
+ * *** SERVER_TIME SHOULD BE CALCULATED BASED ON MEDIAN_SIZE ***
+ *
+ * With a local setup the server time was about 80% (9600 milliseconds), but in real 
+ * time the ratio will be different. 
+ * 
+ * @property SERVER_TIME
+ * @override
+ * @static 
+ * @public
+ */	
+PicUploader.SERVER_TIME = 9600;
