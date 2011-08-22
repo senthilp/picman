@@ -152,7 +152,7 @@ if ($fileObj) {  // file was send from browser
 		    
 		    $data = array();
 		    $data['ack'] = "".$ack;
-			$data['picURL'] = "".$picObj[0]->MemberURL;
+			$data['mainUrl'] = "".$picObj[0]->MemberURL;
 			$data['thumbNail'] = "".$picObj[1]->MemberURL;		     
 		    $response['data'] = $data;
 	    }
@@ -172,7 +172,7 @@ if ($fileObj) {  // file was send from browser
 header("Content-Type: text/html; charset=utf-8");  
 
 // Serialize the response
-//$temp = array('error'=>getErrorResp(100, 'No file to upload')); // Placeholder To simulate error scenario
+//$response = array('error'=>getErrorResp(100, 'No file to upload')); // Placeholder To simulate error scenario
 $html = json_encode($response);
 
 // Build the script output

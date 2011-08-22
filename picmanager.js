@@ -381,13 +381,12 @@ var PicManager = function() {
 			//Remove primary Class and reset sttribute
 			removeClass(getImageWrapper(index), "primary");
 			imageWrapper.isPrimary = 0;
-			// Hide the primary control
+			// Show the primary control
 			show(d[get](picManConfig.image.primaryControl + index), 1);			
 		},
 		reflow: function() {
 			var imageWrapper,
-				img,
-				src,
+				imgData,
 				i=0, 
 				l=startIndex;  
 
@@ -402,8 +401,8 @@ var PicManager = function() {
 				imageWrapper.isPrimary && this.removePrimary(i);							
 				
 				// Check if present in hash else set the src as null
-				src = typeof imageHash[i] != "undefined"?imageHash[i].thumbnailUrl: null;				 
-				picUploaderHash[i].setPicture(src);
+				imgData = typeof imageHash[i] != "undefined"?imageHash[i]: null;				 
+				picUploaderHash[i].setPicture(imgData);
 			}
 			// Reset start index
 			startIndex = imageHash.length;

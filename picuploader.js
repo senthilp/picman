@@ -153,7 +153,6 @@ function PicUploader(dataObj){
 	            	}
 	            	var percentUpload = Math.round(Math.round(e.loaded / e.total * 100) * uploadRatio), // Multiply by upload ratio to get the exact count,
 	            		uploadPercent = Math.round(uploadRatio * 100) - 1; // Subtracting 1 to since for small files after 99% the file is already uploaded
-	            	console.log("percentUpload: " + percentUpload);
 	            	if(percentUpload >= uploadPercent) {
 	            		clientUploadDone = 1;
 	            		// Start the progress meter based on server rate
@@ -260,8 +259,10 @@ function PicUploader(dataObj){
 			that = this;
 		
 		if(err) {
+			// Set the image date object
+			imgData = {error: {thumbnailUrl: errorImage, title: err.msg || err}},
 			// Set the error Image
-			this.setPicture(errorImage, err.msg || err);
+			this.setPicture(imgData);
 			// Call the final complete to set the state accordingly
 			this.complete(res);
 			// Set image loaded state to 0 since this is error scenario
@@ -273,15 +274,12 @@ function PicUploader(dataObj){
 			finalCb && finalCb(index, imgData);			
 		} else { // Success	
 			// Set the image data object			
-			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.picURL};
+			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.mainUrl};
 			// Load the image before completing the progress meter, so the images are shown seemlessly		
 			// Hide the display to preserve the dimensions
 			hide(imageWrapper, 1);
 			// Set the thumbnail picture
-			this.setPicture(res.data.thumbNail);
-			// Create image in zoom overlay
-			updateContent(zoomImageLayer, "");
-			zoomImageLayer.appendChild(createImage(res.data.picURL, 531, 800));			
+			this.setPicture(imgData);
 			
 			// Create the canvas element
 			//(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
@@ -313,17 +311,34 @@ function PicUploader(dataObj){
 		// show(controls);	
 	};
 	
-	this.setPicture = function(src, altText) {
-		if(src) {
+	this.setPicture = function(imgData) {
+		if(imgData) {
+			if(imgData.error) {
+				// If error then set imgDate to error object
+				imgData = imgData.error;
+				// empty the zoom layer
+				updateContent(zoomImageLayer, "");
+			}
+			// First handle thumbnail image
 			if(thumbnailImage = imageWrapper.firstChild) { // Get the image if it is already created and set the source
-				thumbnailImage.src=src;	
+				thumbnailImage.src = imgData.thumbnailUrl;	
 			} else { // Create image and append
-				imageWrapper.appendChild(thumbnailImage = createImage(src, 131, 200));
+				imageWrapper.appendChild(thumbnailImage = createImage(imgData.thumbnailUrl, 131, 200));
 			}			
-			altText && (thumbnailImage.title = altText);
+			// Do the same for zoom image if mainUrl is present
+			if(imgData.mainUrl) {
+				if(zoomImageLayer.firstChild) { // Get the image if it is already created and set the source	
+					zoomImageLayer.firstChild.src = imgData.mainUrl; 
+				} else { // Create image and append
+					zoomImageLayer.appendChild(createImage(imgData.mainUrl, 531, 800));
+				}
+			}
+			// Adding the title for thumbnail image if present
+			imgData.title && (thumbnailImage.title = imgData.title);				
 		} else {
-			// If src not present clean up the image wrapper
+			// If src not present clean up the image wrapper and 
 			updateContent(imageWrapper, "");	
+			updateContent(zoomImageLayer, "");
 		}
 		// Update the image loaded state
 		imgLoadedState = 1;		
@@ -332,6 +347,9 @@ function PicUploader(dataObj){
 	this.deleteImage = function() {
 		// Clear the image wrapper
 		updateContent(imageWrapper, "");
+
+		// Clear the zoom image layer
+		updateContent(zoomImageLayer, "");
 		
 		// Reset the Progress Meter
 		progMeter.progress(0);
