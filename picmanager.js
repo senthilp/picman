@@ -9,6 +9,7 @@ var PicManager = function() {
 		},
 		d = document,
 		get = "getElementById",
+		u = Utils, // Utils object reference
 		MAX_LIMIT, // Max number of files allowed to be uploaded
 		picManConfig, // Pic man config bean
 		file, // File browse HTML element
@@ -22,42 +23,7 @@ var PicManager = function() {
 		fileCounter, // Static closure to keep count of the files uploaded
 		imageHash = [], // Hash to hold the image list in order
 		imageWrapperCache = [], // A cache to hold the images
-		picUploaderHash = [], // Hash to hold the pic uploader instances
-		hide = function(elem, display) { // Hides a layer 
-			if(display) { // If sets then hides display
-				elem.style.display = "none";
-			} else {
-				elem.style.visibility = "hidden";
-			}
-		},	
-		show = function(elem, display) { // Shows a layer
-			if(display) { // If set makes display block
-				elem.style.display = "block";
-			} else {
-				elem.style.visibility = "visible";
-			}			
-		},
-		createImage = function(src, h, w) {
-			var img = document.createElement('img');
-			img.src = src;
-			img.height = h;
-			img.width = w;
-			return img;
-		},		
-		attach = function(element, type, fn) {
-		    if (element.addEventListener){
-		        element.addEventListener(type, fn, false);
-		    } else if (element.attachEvent){
-		        element.attachEvent('on' + type, fn);
-		    }			
-		},	
-		addClass = function(elem, className) {
-			elem.className = elem.className + " " + className;
-		},
-		removeClass = function(elem, className) {
-			var pattern = new RegExp(" " + className, "g");
-			elem.className = elem.className.replace(pattern, "");
-		},
+		picUploaderHash = [], // Hash to hold the pic uploader instances	
 		getImageWrapper = function(index) {
 			var id = picManConfig.image.imageWrapper + index,
 				imageWrapper;
@@ -153,20 +119,20 @@ var PicManager = function() {
 					// Reset exit flag
 					exitFlag = 0;
 					// Highlight border
-					addClass(elem, "dragenter");
+					u.addClass(elem, "dragenter");
 				},
 				dragLeave = function(evt) {
 					// Prevent defaults
 					noOpHandler(evt);
 					// remove border highlight if exit flag is set
-					exitFlag && removeClass(elem, "dragenter");						
+					exitFlag && u.removeClass(elem, "dragenter");						
 					exitFlag = 1;
 				},
 				dragExit = function(evt) {
 					// Prevent defaults
 					noOpHandler(evt);
 					// remove border highlight
-					removeClass(elem, "dragenter");
+					u.removeClass(elem, "dragenter");
 				},
 				drop = function(evt) {
 					// Prevent defaults
@@ -181,21 +147,21 @@ var PicManager = function() {
 					file = evt.dataTransfer;
 					pm.upload();
 					// remove border highlight
-					removeClass(elem, "dragenter");					
+					u.removeClass(elem, "dragenter");					
 				};
 			
 			// Show the box
-			addClass(elem, "activate");	
+			u.addClass(elem, "activate");	
 			
 			// Attach drag events
-			attach(elem, "dragenter", dragEnter);
-			attach(elem, "dragleave", dragLeave); 
-			attach(elem, "dragexit", dragExit); // For FF < 3.5
-			attach(elem, "dragover", noOpHandler);
+			u.attach(elem, "dragenter", dragEnter);
+			u.attach(elem, "dragleave", dragLeave); 
+			u.attach(elem, "dragexit", dragExit); // For FF < 3.5
+			u.attach(elem, "dragover", noOpHandler);
 			
 			// Attach the drop event
-			attach(elem, "drop", drop);
-			attach(elem, "dragdrop", drop); // For FF < 3.5
+			u.attach(elem, "drop", drop);
+			u.attach(elem, "dragdrop", drop); // For FF < 3.5
 		},
 		// Creates picuploader instance
 		createPicuploader = function(index, scope) {
@@ -227,9 +193,9 @@ var PicManager = function() {
 						imageHash[index] = imgData;
 						if(fileCounter == selectedFilesCount) {
 							// Show add pic layer only if files upload less than MAX_LIMIT
-							(startIndex < MAX_LIMIT) && show(addPicLayer);
+							(startIndex < MAX_LIMIT) && u.show(addPicLayer);
 							// Remove the mash
-							hide(maskLayer, 1);
+							u.hide(maskLayer, 1);
 							inProgress = 0;
 							// Set primary if primeFlag is set 
 							if(primeFlag && !imageHash[primaryIndex].error){
@@ -244,7 +210,7 @@ var PicManager = function() {
 						// Do a reflow
 						scope.reflow();
 						// Show add layer if # of images less than MAX_LIMIT
-						(startIndex < MAX_LIMIT) && show(addPicLayer);
+						(startIndex < MAX_LIMIT) && u.show(addPicLayer);
 					},
 					primaryCb: function(index) {
 						// Set primary
@@ -281,10 +247,10 @@ var PicManager = function() {
 				fileElem.setAttribute("multiple", "multiple");
 				// Activate the drop box & show the drop text
 				activateDropbox(picManConfig.dropBox);
-				show(d[get](picManConfig.dropText), 1);
+				u.show(d[get](picManConfig.dropText), 1);
 			}
 			// Attaching on change event 
-			attach(fileElem, "change", function() {
+			u.attach(fileElem, "change", function() {
 				// If in progress then just return
 				if(inProgress) {
 					return;
@@ -319,9 +285,9 @@ var PicManager = function() {
 			}
 			
 			// Hide the app pic layer
-			hide(addPicLayer);
+			u.hide(addPicLayer);
 			// Show the Mask
-			show(maskLayer, 1);
+			u.show(maskLayer, 1);
 			
 			// Set in progress flag
 			inProgress = 1; 
@@ -365,10 +331,10 @@ var PicManager = function() {
 			}
 			imageWrapper = getImageWrapper(primaryIndex);
 			// Set the primary Class and set sttribute
-			addClass(imageWrapper, "primary");			
+			u.addClass(imageWrapper, "primary");			
 			imageWrapper.isPrimary = 1;
 			// Hide the primary control
-			hide(d[get](picManConfig.image.primaryControl + primaryIndex), 1);
+			u.hide(d[get](picManConfig.image.primaryControl + primaryIndex), 1);
 		},
 		removePrimary: function(index) {
 			var imageWrapper;
@@ -378,10 +344,10 @@ var PicManager = function() {
 			}
 			imageWrapper = getImageWrapper(index);
 			//Remove primary Class and reset sttribute
-			removeClass(getImageWrapper(index), "primary");
+			u.removeClass(getImageWrapper(index), "primary");
 			imageWrapper.isPrimary = 0;
 			// Show the primary control
-			show(d[get](picManConfig.image.primaryControl + index), 1);			
+			u.show(d[get](picManConfig.image.primaryControl + index), 1);			
 		},
 		reflow: function() {
 			var imageWrapper,

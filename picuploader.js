@@ -1,5 +1,6 @@
 function PicUploader(dataObj){ 
 	/**
+	 * Private static variables 
 	 * Math attributes for acurate progress meter 
 	 */	
 	var medianTime = dataObj.medianTime || PicUploader.MEDIAN_TIME, // Override from data object if avialble
@@ -40,7 +41,8 @@ function PicUploader(dataObj){
 		 */	
 		instance = this,
 		d = document, 
-		get = "getElementById", // Shortcut for document.getElementById to enable compression			
+		get = "getElementById", // Shortcut for document.getElementById to enable compression	
+		u = Utils, // Utils object reference
 		imgLoadedState = 1, // Flag to maintain image loaded state. Default is 1 set to 0 when load failed
 		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
@@ -61,23 +63,6 @@ function PicUploader(dataObj){
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
 		canvasElem, // Canvas element 
-		hide = function(elem, display) { // Hides a layer 
-			if(display) { // If sets then hides display
-				elem.style.display = "none";
-			} else {
-				elem.style.visibility = "hidden";
-			}
-		},
-		show = function(elem, display) { // Shows a layer
-			if(display) { // If set makes display block
-				elem.style.display = "block";
-			} else {
-				elem.style.visibility = "visible";
-			}			
-		},
-		updateContent = function(elem, content) {
-			elem.innerHTML = content;
-		},
 		getInterval = function(size, rate, percentCompleted) {
 			!rate && (rate = uploadRate);
 			!percentCompleted && (percentCompleted = 0);
@@ -87,39 +72,6 @@ function PicUploader(dataObj){
 			// Due to clamping successive intervals DOM_CLAMP_TIMEOUT_NESTING_LEVEL 
 			// https://developer.mozilla.org/en/DOM/window.setTimeout#Minimum_delay_and_timeout_nesting
 			return interval < 5? 5: interval;
-		},
-		createImage = function(src, h, w) {
-			var img = document.createElement('img');
-			img.src = src;
-			img.height = h;
-			img.width = w;			
-			return img;
-		},
-		createIframe = function(id) {
-			var iframe;
-			try{
-				// To overcome IE hack
-				iframe = d.createElement('<iframe name="' + id + '">');
-			} catch(ex) {
-				iframe = d.createElement('iframe');
-				iframe.setAttribute('name', id);
-			}
-			
-			iframe.setAttribute('id', id);						
-			iframe.style.display = 'none';
-	        document.body.appendChild(iframe);
-
-	        return iframe;			
-		},
-		createForm = function(iframe, file) {
-			var form = d.createElement('form');
-	        form.setAttribute('action', serverURL);
-	        form.setAttribute('target', iframe.name);
-	        form.style.display = 'none';
-	        document.body.appendChild(form);
-	        form.appendChild(file);
-	        
-	        return form;			
 		},
 		getIframeResponse = function(iframe) {
 	        // iframe.contentWindow.document - for IE<7
@@ -132,13 +84,6 @@ function PicUploader(dataObj){
 	        }
 
 	        return response;
-		},
-		attach = function(element, type, fn) {
-		    if (element.addEventListener){
-		        element.addEventListener(type, fn, false);
-		    } else if (element.attachEvent){
-		        element.attachEvent('on' + type, fn);
-		    }			
 		},
 		uploadAJAX = function(fileInfo, cb) {
 			var xhr = new XMLHttpRequest(),
@@ -180,10 +125,10 @@ function PicUploader(dataObj){
 	        xhr.send(fileInfo.file);	        
 		},
 		uploadIframe = function(fileInfo, cb) {
-			var iframe = createIframe(fileInfo.name);
+			var iframe = u.createIframe(fileInfo.name);
 			!uploadForm && (uploadForm = d[get](uploadFormName)); 
 			uploadForm.setAttribute('target', iframe.name);
-			attach(iframe, 'load', function() {
+			u.attach(iframe, 'load', function() {
 	            // when we remove iframe from dom
 	            // the request stops, but in IE load
 	            // event fires
@@ -235,13 +180,13 @@ function PicUploader(dataObj){
 		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // AJAX based approach or hidden Iframe based approach
 		
 		// Update the file name
-		updateContent(fileNameLayer, fileObj.name);			
+		u.updateContent(fileNameLayer, fileObj.name);			
 		
 		// Show the file name Layer
-		show(fileNameLayer);
+		u.show(fileNameLayer);
 		
 		// Show the progress bar
-		show(progMeterLayer);
+		u.show(progMeterLayer);
 				
 		uploadServer(fileObj, function(res) {
 			t.handleResponse(res);
@@ -272,7 +217,7 @@ function PicUploader(dataObj){
 			imgData = {thumbnailUrl: res.data.thumbNail, mainUrl: res.data.mainUrl};
 			// Load the image before completing the progress meter, so the images are shown seemlessly		
 			// Hide the display to preserve the dimensions
-			hide(imageWrapper, 1);
+			u.hide(imageWrapper, 1);
 			// Set the thumbnail picture
 			this.setPicture(imgData);
 			
@@ -293,14 +238,14 @@ function PicUploader(dataObj){
 	this.complete = function(res) {
 		
 		// Hide the file name
-		hide(fileNameLayer);
+		u.hide(fileNameLayer);
 		
 		// Hide the progress meter layer
-		hide(progMeterLayer);
+		u.hide(progMeterLayer);
 		
 		// Show the wrapper (both visibility & display) 
-		show(imageWrapper);
-		show(imageWrapper, 1);
+		u.show(imageWrapper);
+		u.show(imageWrapper, 1);
 		
 		// Set progress meter to 0
 		progMeter.progress(0);
@@ -312,20 +257,20 @@ function PicUploader(dataObj){
 			if((thumbnailImage = imageWrapper.firstChild) && thumbnailImage.tagName.toUpperCase() == "IMG") { // Get the image if it is already created and set the source
 				thumbnailImage.src = imgData.thumbnailUrl;	
 			} else { // Create image and append
-				updateContent(imageWrapper, ""); // Clear the content first 
-				imageWrapper.appendChild(thumbnailImage = createImage(imgData.thumbnailUrl, 131, 200));
+				u.updateContent(imageWrapper, ""); // Clear the content first 
+				imageWrapper.appendChild(thumbnailImage = u.createImage(imgData.thumbnailUrl, 131, 200));
 			}			
 			// Do the same for zoom image
 			if(zoomImageLayer.firstChild) { // Get the image if it is already created and set the source	
 				zoomImageLayer.firstChild.src = imgData.mainUrl; 
 			} else { // Create image and append
-				zoomImageLayer.appendChild(createImage(imgData.mainUrl, 531, 800));
+				zoomImageLayer.appendChild(u.createImage(imgData.mainUrl, 531, 800));
 			}
 		
 		} else {
 			// If src not present clean up the image wrapper and 
-			updateContent(imageWrapper, "");	
-			updateContent(zoomImageLayer, "");
+			u.updateContent(imageWrapper, "");	
+			u.updateContent(zoomImageLayer, "");
 		}
 		// Update the image loaded state
 		imgLoadedState = 1;		
@@ -333,16 +278,16 @@ function PicUploader(dataObj){
 	
 	this.deleteImage = function() {
 		// Clear the image wrapper
-		updateContent(imageWrapper, "");
+		u.updateContent(imageWrapper, "");
 
 		// Clear the zoom image layer
-		updateContent(zoomImageLayer, "");
+		u.updateContent(zoomImageLayer, "");
 		
 		// Reset the Progress Meter
 		progMeter.progress(0);
 				
 		// Hide controls
-		hide(controls);		
+		u.hide(controls);		
 		
 		// Call the delete callback if present
 		deleteCb &&	deleteCb(index);	 
@@ -358,41 +303,41 @@ function PicUploader(dataObj){
 	};
 	
 	this.showControls = function() {
-		imgLoadedState && imageWrapper.firstChild && show(controls);
+		imgLoadedState && imageWrapper.firstChild && u.show(controls);
 	};
 	
 	this.hideControls = function() {
-		imgLoadedState && imageWrapper.firstChild && hide(controls);
+		imgLoadedState && imageWrapper.firstChild && u.hide(controls);
 	};
 	
 	this.zoomImage = function() {			
-		show(maskLayer, 1);
-		show(overlay, 1);
+		u.show(maskLayer, 1);
+		u.show(overlay, 1);
 	};
 	
 	this.closeOverlay = function() {
-		hide(maskLayer, 1);
-		hide(overlay, 1);			
+		u.hide(maskLayer, 1);
+		u.hide(overlay, 1);			
 	};
 	
 	// Bind events
-	attach(d[get](dataObj.picContainer), "mouseover", function(){
+	u.attach(d[get](dataObj.picContainer), "mouseover", function(){
 		instance.showControls();
 	});
-	attach(d[get](dataObj.picContainer), "mouseout", function(){
+	u.attach(d[get](dataObj.picContainer), "mouseout", function(){
 		instance.hideControls();
 	});
-	attach(d[get](dataObj.closeZoomLink), "click", function(){
+	u.attach(d[get](dataObj.closeZoomLink), "click", function(){
 		instance.closeOverlay();
 		return false;
 	});
-	attach(d[get](dataObj.zoomControl), "click", function(){
+	u.attach(d[get](dataObj.zoomControl), "click", function(){
 		instance.zoomImage();
 	});
-	attach(d[get](dataObj.deleteControl), "click", function(){
+	u.attach(d[get](dataObj.deleteControl), "click", function(){
 		instance.deleteImage();
 	});
-	attach(d[get](dataObj.primaryControl), "click", function(){
+	u.attach(d[get](dataObj.primaryControl), "click", function(){
 		instance.setPrimary();
 	});	
 };
