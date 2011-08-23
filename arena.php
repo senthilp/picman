@@ -98,8 +98,8 @@
 			}
 			.error {
 				color: red;
-				display: none;
-				height: 12px;
+				text-align: center;
+				margin-top: 55px;
 			}
 			.picbottom {
 				text-align: center;
@@ -253,7 +253,6 @@
 				progressMeterLayer: "progressMeter",
 				progressLayer: "progress",
 				percentLayer: "percentage", 
-				errorLayer: "error",
 				imageWrapper: "imageWrapper",
 				controlsLayer: "controls",
 				overlayLayer: "overlay",
@@ -282,7 +281,6 @@
 		$html[] = '</div>';
 		$html[] = '</div>';
 		$html[] = '<div id="picTop'.$index.'">';
-		$html[] = '<div id="error'.$index.'" class="error"></div>';
 		$html[] = '<div id="controls'.$index.'" class="controls">';
 		$html[] = '<div id="zoom'.$index.'" class="icon-hover" onmousedown="this.style.background = \'#DDE1EB\';" onmouseup="this.style.background = \'\';">';
 		$html[] = '<div class="icons zoom" title="Zoom"></div>';

@@ -212,7 +212,6 @@ var PicManager = function() {
 					progressMeterLayer: picManConfig.image.progressMeterLayer + index,
 					progressLayer: picManConfig.image.progressLayer + index,
 					percentLayer: picManConfig.image.percentLayer + index,
-					errorLayer: picManConfig.image.errorLayer + index,
 					imageWrapper: picManConfig.image.imageWrapper + index,
 					controlsLayer: picManConfig.image.controlsLayer + index,
 					overlayLayer: picManConfig.image.overlayLayer + index,

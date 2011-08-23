@@ -48,7 +48,6 @@ function PicUploader(dataObj){
 		fileObj = dataObj.file, // The file object in case present in the data object
 		fileNameLayer = d[get](dataObj.fileNameLayer), // File name div
 		progMeterLayer = d[get](dataObj.progressMeterLayer), // Progress Meter layer
-		errorLayer = d[get](dataObj.errorLayer), // Error layer
 		imageWrapper = d[get](dataObj.imageWrapper), // Image Wrapper
 		controls = d[get](dataObj.controlsLayer), // controls layer
 		overlay = d[get](dataObj.overlayLayer), // Overlay layer
@@ -233,11 +232,8 @@ function PicUploader(dataObj){
 		
 		var t = this,
 		// Decide upload functionality based on browser support 
-		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // ALAX based approach or hidden Iframe based approach
+		uploadServer = fileObj.multiUpload? uploadAJAX: uploadIframe; // AJAX based approach or hidden Iframe based approach
 		
-		// Hide the error message if any
-		hide(errorLayer);
-
 		// Update the file name
 		updateContent(fileNameLayer, fileObj.name);			
 		
@@ -255,21 +251,20 @@ function PicUploader(dataObj){
 	this.handleResponse = function(res) {
 		// Get error message if any
 		var err = !res? "No response from server. Try again": res.error,
-			imgData = {error: err},
+			imgData,
 			that = this;
 		
 		if(err) {
-			// Set the image date object
-			imgData = {error: {thumbnailUrl: errorImage, title: err.msg || err}},
-			// Set the error Image
-			this.setPicture(imgData);
+			//Set image data
+			imgData = {error: err};
+			// Set the error content
+			imageWrapper.innerHTML = '<div class="error">' + err.msg || err + '</div>';
+			// Stop the progress meter
+			progMeter.stop();
 			// Call the final complete to set the state accordingly
 			this.complete(res);
 			// Set image loaded state to 0 since this is error scenario
 			imgLoadedState = 0;	
-			// Stop the progress meter and set to 0
-			progMeter.stop();
-			progMeter.progress(0);
 			// Call the final callback
 			finalCb && finalCb(index, imgData);			
 		} else { // Success	
@@ -307,34 +302,26 @@ function PicUploader(dataObj){
 		show(imageWrapper);
 		show(imageWrapper, 1);
 		
-		// Show only when mouse over
-		// show(controls);	
+		// Set progress meter to 0
+		progMeter.progress(0);
 	};
 	
 	this.setPicture = function(imgData) {
 		if(imgData) {
-			if(imgData.error) {
-				// If error then set imgDate to error object
-				imgData = imgData.error;
-				// empty the zoom layer
-				updateContent(zoomImageLayer, "");
-			}
 			// First handle thumbnail image
-			if(thumbnailImage = imageWrapper.firstChild) { // Get the image if it is already created and set the source
+			if((thumbnailImage = imageWrapper.firstChild) && thumbnailImage.tagName.toUpperCase() == "IMG") { // Get the image if it is already created and set the source
 				thumbnailImage.src = imgData.thumbnailUrl;	
 			} else { // Create image and append
+				updateContent(imageWrapper, ""); // Clear the content first 
 				imageWrapper.appendChild(thumbnailImage = createImage(imgData.thumbnailUrl, 131, 200));
 			}			
-			// Do the same for zoom image if mainUrl is present
-			if(imgData.mainUrl) {
-				if(zoomImageLayer.firstChild) { // Get the image if it is already created and set the source	
-					zoomImageLayer.firstChild.src = imgData.mainUrl; 
-				} else { // Create image and append
-					zoomImageLayer.appendChild(createImage(imgData.mainUrl, 531, 800));
-				}
+			// Do the same for zoom image
+			if(zoomImageLayer.firstChild) { // Get the image if it is already created and set the source	
+				zoomImageLayer.firstChild.src = imgData.mainUrl; 
+			} else { // Create image and append
+				zoomImageLayer.appendChild(createImage(imgData.mainUrl, 531, 800));
 			}
-			// Adding the title for thumbnail image if present
-			imgData.title && (thumbnailImage.title = imgData.title);				
+		
 		} else {
 			// If src not present clean up the image wrapper and 
 			updateContent(imageWrapper, "");	
