@@ -1,20 +1,13 @@
 <?php 
-	// Vehicle List
-	$VEH_LIST = array("", 
-					"", 
-					"",
-					"",
-					"",
-					"",
-					"",
-					""
-					);
+	// Vehicle Count
+	$VEH_COUNT = 8;
 ?>
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <HTML>
 <HEAD>
 	<META http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 	<TITLE>Picture Uploader</TITLE>
+	<link rel="shortcut icon" href="favicon.ico" />
 	<style type="text/css">
 			body {
 				font-family: Arial,Helvetica,sans-serif;
@@ -219,11 +212,11 @@
 		</div>
 		<div id="dropBox" class="dropbox">
 			<?php 
-				for($i=0, $l=count($VEH_LIST); $i < $l; $i++) {
+				for($i=0; $i < $VEH_COUNT; $i++) {
 					if($i%4 == 0) {
 						echo '<div class="clear"></div>';
 					}
-					echo getPicTemplate($i, $VEH_LIST[$i]);
+					echo getPicTemplate($i);
 				}
 			?>	
 		</div>		
@@ -236,7 +229,7 @@
 	<script src="picmanager.js"></script>
 	<script>
 		var PicManConfig = {
-			MAX_LIMIT: <?php echo count($VEH_LIST); ?>,
+			MAX_LIMIT: <?php echo $VEH_COUNT; ?>,
 			uploadForm: "file_upload_form", 
 			file: "picfile", 
 			maskLayer: "mask",
@@ -271,7 +264,7 @@
 </BODY>
 </HTML>
 <?php 			
-	function getPicTemplate($index, $vehicle) {
+	function getPicTemplate($index) {
 		$html = array();
 		$html[] = '<div id="picContainer'.$index.'" class="piccontainer">';
 		$html[] = '<div id="overlay'.$index.'" class="overlay">';
@@ -305,7 +298,6 @@
 		$html[] = '</div>';
 		$html[] = '</div>';
 		$html[] = '<div id="picBottom'.$index.'" class="picbottom">';
-		$html[] = $vehicle;
 		$html[] = '</div>';
 		$html[] = '</div>';
 				
