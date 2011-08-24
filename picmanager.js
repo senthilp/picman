@@ -14,7 +14,6 @@ var PicManager = function() {
 		picManConfig, // Pic man config bean
 		file, // File browse HTML element
 		primaryIndex, // Index to denote primary Image
-		primeFlag, // Flag to denote if setPrimary should be called on init
 		maskLayer, // Mask Layer
 		addLayer, // Add file Layer
 		startIndex, // Static closure variable to maintain the start index when file upload
@@ -22,18 +21,7 @@ var PicManager = function() {
 		selectedFilesCount, // Static closure to hold the selected files count on each upload
 		fileCounter, // Static closure to keep count of the files uploaded
 		imageHash = [], // Hash to hold the image list in order
-		imageWrapperCache = [], // A cache to hold the images
 		picUploaderHash = [], // Hash to hold the pic uploader instances	
-		getImageWrapper = function(index) {
-			var id = picManConfig.image.imageWrapper + index,
-				imageWrapper;
-			// Check in the cahce first
-			if(!(imageWrapper = imageWrapperCache[id])) {
-				imageWrapper = d[get](id);
-				imageWrapperCache[id] = imageWrapper;
-			}
-			return imageWrapper;
-		}, 
 		cleanImageHash = function() {
 			var i = 0,
 				count = 0,
@@ -163,6 +151,18 @@ var PicManager = function() {
 			u.attach(elem, "drop", drop);
 			u.attach(elem, "dragdrop", drop); // For FF < 3.5
 		},
+		checkForPrimary = function() {
+			if(picUploaderHash[primaryIndex] && !picUploaderHash[primaryIndex].isPrimary()) {
+				if(imageHash[primaryIndex].error) {
+					if(++primaryIndex < startIndex) {
+						// Recursively call checkForPrimary again 
+						checkForPrimary();
+					}					
+				} else {
+					picUploaderHash[primaryIndex].setPrimary();
+				}
+			}
+		},
 		// Creates picuploader instance
 		createPicuploader = function(index, scope) {
 			var picUploader = picUploaderHash[index];
@@ -197,11 +197,8 @@ var PicManager = function() {
 							// Remove the mash
 							u.hide(maskLayer, 1);
 							inProgress = 0;
-							// Set primary if primeFlag is set 
-							if(primeFlag && !imageHash[primaryIndex].error){
-								scope.setPrimary();
-								primeFlag = 0; // Reset prime flag
-							}	
+							// Check for primary status 
+							checkForPrimary();
 						}
 					},
 					deleteCb: function(index) {
@@ -231,7 +228,6 @@ var PicManager = function() {
 			MAX_LIMIT = picManConfig.MAX_LIMIT;
 			primaryIndex = picManConfig.primaryIndex || 0;	
 			startIndex = picManConfig.startIndex || 0;
-			primeFlag = primaryIndex == 0;
 			// Overriding the PicUploader static attributes based on config
 			picManConfig.medianTime && (PicUploader.MEDIAN_TIME = picManConfig.medianTime);
 			picManConfig.medianSize && (PicUploader.MEDIAN_SIZE = picManConfig.medianSize);
@@ -268,7 +264,7 @@ var PicManager = function() {
 				}
 			}
 			// Set primary flag to image wrapper
-			startIndex && (getImageWrapper(primaryIndex).isPrimary = 1);
+			startIndex && picUploaderHash[primaryIndex].setPrimary();
 		},
 		
 		upload: function() {
@@ -319,39 +315,22 @@ var PicManager = function() {
 			imageHash = imageHash.slice(0, index).concat(imageHash.slice(index + 1));
 		},
 		setPrimary: function(index) {
-			var imageWrapper;
 			if(typeof index != "undefined" && primaryIndex != index) {
 				//Remove primary Class
 				this.removePrimary(primaryIndex);
 				primaryIndex = index;
 			}
-			// Check for error first
-			if(imageHash[primaryIndex].error) {
-				return;
-			}
-			imageWrapper = getImageWrapper(primaryIndex);
-			// Set the primary Class and set sttribute
-			u.addClass(imageWrapper, "primary");			
-			imageWrapper.isPrimary = 1;
-			// Hide the primary control
-			u.hide(d[get](picManConfig.image.primaryControl + primaryIndex), 1);
 		},
 		removePrimary: function(index) {
-			var imageWrapper;
 			// Set index to primary if not passed
 			if(!index) {
 				index = primaryIndex;
 			}
-			imageWrapper = getImageWrapper(index);
-			//Remove primary Class and reset sttribute
-			u.removeClass(getImageWrapper(index), "primary");
-			imageWrapper.isPrimary = 0;
-			// Show the primary control
-			u.show(d[get](picManConfig.image.primaryControl + index), 1);			
+			// Remove the primary state from the picture
+			picUploaderHash[index].removePrimary();
 		},
 		reflow: function() {
-			var imageWrapper,
-				imgData,
+			var imgData,
 				i=0, 
 				l=startIndex;  
 
@@ -359,11 +338,8 @@ var PicManager = function() {
 			cleanImageHash();
 			
 			for(; i<l; i++) {
-				// Get image wrapper from cache
-				imageWrapper = getImageWrapper(i);	
-
-				// Remove the primary from the wrapper
-				imageWrapper.isPrimary && this.removePrimary(i);							
+				// Remove the primary from the picture if set
+				picUploaderHash[i].isPrimary && picUploaderHash[i].removePrimary();							
 				
 				// Check if present in hash else set the src as null
 				imgData = typeof imageHash[i] != "undefined"?imageHash[i]: null;				 
@@ -372,7 +348,7 @@ var PicManager = function() {
 			// Reset start index
 			startIndex = imageHash.length;
 			// If there is Image then set Primary
-			startIndex && this.setPrimary();
+			startIndex && picUploaderHash[primaryIndex].setPrimary();
 		},
 		isMultiUploadSupported: function(){
 			var input = document.createElement("input");

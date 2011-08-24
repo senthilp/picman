@@ -44,6 +44,7 @@ function PicUploader(dataObj){
 		get = "getElementById", // Shortcut for document.getElementById to enable compression	
 		u = Utils, // Utils object reference
 		imgLoadedState = 1, // Flag to maintain image loaded state. Default is 1 set to 0 when load failed
+		isPrimary, // Flag hold the primary state of image
 		index = dataObj.index, // The index assoicated with this instance
 		uploadFormName = dataObj.uploadForm, // The form name to simulate AJAX
 		uploadForm, // Local variable to cache form element
@@ -55,6 +56,7 @@ function PicUploader(dataObj){
 		overlay = d[get](dataObj.overlayLayer), // Overlay layer
 		zoomImageLayer = d[get](dataObj.zoomLayer), // Zoom image layer
 		maskLayer = dataObj.maskLayer, // mask layer
+		primaryControl = dataObj.primaryControl, // Primary control div
 		finalCb = dataObj.finalCb, // Final callback to execute after upload complete
 		deleteCb = dataObj.deleteCb, // Delete callback to call after user deletes an image
 		primaryCb = dataObj.primaryCb, // Primary callback to call after user an image as primary
@@ -293,15 +295,6 @@ function PicUploader(dataObj){
 		deleteCb &&	deleteCb(index);	 
 	};
 	
-	// This method currently acts as a facade to the callback function
-	// Logic can be added if needed
-	this.setPrimary = function() {
-		// Call only if the image is uploaded
-		if(imgLoadedState) {
-			primaryCb && primaryCb(index);
-		}
-	};
-	
 	this.showControls = function() {
 		imgLoadedState && imageWrapper.firstChild && u.show(controls);
 	};
@@ -318,6 +311,32 @@ function PicUploader(dataObj){
 	this.closeOverlay = function() {
 		u.hide(maskLayer, 1);
 		u.hide(overlay, 1);			
+	};
+	
+	this.setPrimary = function() {
+		if(imgLoadedState) {
+			// Set the primary Class and set sttribute
+			u.addClass(imageWrapper, "primary");	
+			// Set primary flag
+			isPrimary = 1;
+			// Hide the primary control
+			u.hide(d[get](primaryControl), 1);
+			// Call the primary callback if available
+			primaryCb && primaryCb(index);
+		}
+	};
+	
+	this.removePrimary = function() {
+		//Remove primary Class
+		u.removeClass(imageWrapper, "primary");
+		// Reset primary flag		
+		isPrimary = 0;
+		// Show the primary control
+		u.show(d[get](primaryControl), 1);					
+	};
+	
+	this.isPrimary = function() {
+		return isPrimary;
 	};
 	
 	// Bind events
