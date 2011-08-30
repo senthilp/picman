@@ -23,7 +23,7 @@
 					Drag photos into the drop box
 				</div>
 				<div class="browse">
-					<input type="file" name="picfile" id="picfile" class="browse" />
+					<input type="file" name="picfile" id="picfile" accept="image/*" class="browse" />
 				</div>				
 			</form>				
 		</div>
@@ -38,9 +38,6 @@
 			?>	
 		</div>		
 	</div>	
-	<div id="videoDemo" class="clear videodemo">
-		<a target="_blank" href="http://www.youtube.com/watch?v=68rNuzYnxOI">Quick Demo</a>
-	</div>
 	<script src="utils.js"></script>
 	<script src="progressmeter.js"></script>
 	<script src="picuploader.js"></script>
@@ -77,8 +74,7 @@
 		};		
 		// Initialize PicMan
 		PicManager.init(PicManConfig);	
-	</script>		
-	<!-- <script src="http://webplayer.yahooapis.com/player-beta.js"></script> --> 
+	</script>		 
 </BODY>
 </HTML>
 <?php 			

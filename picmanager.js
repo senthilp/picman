@@ -1,3 +1,24 @@
+/**
+ * PicManager is the centralized singleton manager class of the PicMan application 
+ * controlling the user interface for uploading images, managing the Picture Uploader 
+ * instances and maintaining the state of the application during various operations.
+ * 
+ * Primary tasks include
+ * 	1. Modernizr - Activates the UI for drag & drop and multi-file select based on 
+ * 				   browser support and fallback to basic single file browse upload
+ * 				   for older browsers
+ * 	2. File Validation - Validates the selected file type to be only images and also  
+ * 						 not to exceed the max limit
+ * 	3. Normalization - Normalizes the user selected files, creating a file object
+ * 					   list encapsulating the various file attributes that PicUploader
+ * 			           understands
+ *  4. Creates and manages the PicUploader instances
+ *  5. Maintian the application states during all the above operations
+ * 
+ * @class PicUploader
+ * @singleton
+ * 
+ */
 var PicManager = function() {
 	var FILE_TYPE_MATRIX = {
 			"jpeg": 1,
@@ -22,6 +43,14 @@ var PicManager = function() {
 		fileCounter, // Static closure to keep count of the files uploaded
 		imageHash = [], // Hash to hold the image list in order
 		picUploaderHash = [], // Hash to hold the pic uploader instances	
+		/**
+	     * Cleans the local imageHash map by removing the error entries, errors that
+	     * happened when uploading an image  
+	     * 
+	     * @method cleanImageHash 
+	     *   	
+	     * @private
+	     */	
 		cleanImageHash = function() {
 			var i = 0,
 				count = 0,
@@ -42,6 +71,15 @@ var PicManager = function() {
 			// Reduce the index from the primaryIndex
 			primaryIndex -= index;
 		},
+		/**
+	     * Checks the file type of the given fileName by verifying the file name
+	     * extension. the extension should be present in the FILE_TYPE_MATRIX
+	     * 
+	     * @method checkFileType 
+	     * @param {String} fileName The name of the file to be uploaded
+	     * 
+	     * @private
+	     */			
 		checkFileType = function(fileName) {
 			if(!fileName) {
 				return;
@@ -49,6 +87,17 @@ var PicManager = function() {
 			var ext = fileName.match(/\.([^\.]+)$/);
 			return ext && ext[1]? FILE_TYPE_MATRIX[ext[1].toLowerCase()]: 1;
 		},
+		/**
+	     * Normalizes the file HTML element by creating a file object list with 
+	     * various file attributes. For browsers which do not support Multi
+	     * file selection a list with 1 file object is created. 
+	     * 
+	     * In case of any errors an error object is returned
+	     * 
+	     * @method getFileList 
+	     * 
+	     * @private
+	     */			
 		getFileList = function() {
 			var fileList, i, l, current, fileName, fileTypeError;
 			
@@ -92,6 +141,15 @@ var PicManager = function() {
 			
 			return fileList;
 		},
+		/**
+	     * Activates the drop box by attaching various drag/drop events and changing
+	     * the drop box style
+	     * 
+	     * @method activateDropbox 
+	     * @param {String} dropBoxDiv The id of the drop box div element
+	     * 
+	     * @private
+	     */				
 		activateDropbox = function(dropBoxDiv) {
 			var elem = d[get](dropBoxDiv),	
 				pm = PicManager,
@@ -151,6 +209,14 @@ var PicManager = function() {
 			u.attach(elem, "drop", drop);
 			u.attach(elem, "dragdrop", drop); // For FF < 3.5
 		},
+		/**
+	     * Check if any of the uploaded image is a primary image and if so apply 
+	     * the primary image style
+	     * 
+	     * @method checkForPrimary 
+	     * 
+	     * @private
+	     */			
 		checkForPrimary = function() {
 			if(picUploaderHash[primaryIndex] && !picUploaderHash[primaryIndex].isPrimary()) {
 				if(imageHash[primaryIndex].error) {
@@ -163,8 +229,17 @@ var PicManager = function() {
 				}
 			}
 		},
-		// Creates picuploader instance
-		createPicuploader = function(index, scope) {
+		/**
+	     * Creates a PicUploader instance for the given index and adds the instance
+	     * to the picUploaderHash. The instance is created only if not available in
+	     * the hash for that index
+	     * 
+	     * @method createPicuploader 
+	     * @param {Number} index The index position of the image 
+	     * 
+	     * @private
+	     */	
+		createPicuploader = function(index) {
 			var picUploader = picUploaderHash[index];
 			// Check the hash first then create an instance
 			if(!picUploader) {
@@ -203,15 +278,15 @@ var PicManager = function() {
 					},
 					deleteCb: function(index) {
 						// Remove image from hash
-						scope.removeImageHash(index);
+						PicManager.removeImageHash(index);
 						// Do a reflow
-						scope.reflow();
+						PicManager.reflow();
 						// Show add layer if # of images less than MAX_LIMIT
 						(startIndex < MAX_LIMIT) && u.show(addPicLayer);
 					},
 					primaryCb: function(index) {
 						// Set primary
-						scope.setPrimary(index);
+						PicManager.setPrimary(index);
 					}
 				}); 
 				picUploaderHash[index] = picUploader;
@@ -220,6 +295,17 @@ var PicManager = function() {
 		};
 	
 	return {
+		/**
+	     * Initializes the PicManager application with the given input config object.
+	     * It also creates the PicUploader instances for images which are already 
+	     * present on page load and adjusts the starting index accordingly
+	     * 
+	     * @method init 
+	     * @param {Object} config The input config object for the PicMan application 
+	     * 
+	     * @public
+	     * @static
+	     */		
 		init: function(config) {
 			// Setting the private static variables 
 			picManConfig = config;
@@ -257,7 +343,7 @@ var PicManager = function() {
 			});
 			// Create Pic Uploader instances if images are already present
 			for(i=0; i<startIndex; i++) {
-				createPicuploader(i, t);
+				createPicuploader(i);
 				// Initialize the image hash since images are already present
 				if(picManConfig.imageHash && (localImageHash=picManConfig.imageHash[i])){
 					imageHash[i] = {thumbnailUrl: localImageHash.thumbnailUrl, mainUrl: localImageHash.mainlUrl};
@@ -267,11 +353,23 @@ var PicManager = function() {
 			startIndex && picUploaderHash[primaryIndex].setPrimary();
 		},
 		
+		/**
+	     * Function is triggered when user selects files to upload either through 
+	     * drag & drop or selecting from browse window. Does the following 
+	     * 1. Normalizes the selected files
+	     * 2. Pre-upload UI updates
+	     * 3. Set the PicManager states accordingly
+	     * 4. Creates PicUploader instance and calls the upload method 
+	     * 
+	     * @method upload  
+	     * 
+	     * @public
+	     * @static	     
+	     */				
 		upload: function() {
 			var fileList = getFileList(), 
 				picUploader, 
 				localIndex = startIndex, 
-				that = this, // Getting the singleton instance
 				i;			
 			
 			// Check for errors or empty list first			
@@ -295,17 +393,34 @@ var PicManager = function() {
 			// Create and bind picuploader instances 
 			for(i=0; i<selectedFilesCount; i++) {
 				// Create the pic uploader instance
-				picUploader = createPicuploader(localIndex, that);
-				// Set the file object
-				picUploader.setFileObj(fileList[i]);
+				picUploader = createPicuploader(localIndex);
 				// Upload the file
-				picUploader.upload();	
+				picUploader.upload(fileList[i]);	
 				localIndex++;
 			}
 		},	
+		
+		/**
+	     * Returns the Image Hash which holds the Image Data objects
+	     * 
+	     * @method getImageHash  
+	     * 
+	     * @public
+	     * @static	     
+	     */		
 		getImageHash: function() {
 			return imageHash;
 		},
+		
+		/**
+	     * For a given index removes its corresponding entry from the Image Hash
+	     * 
+	     * @method removeImageHash  
+	     * @param {Number} index The index to remove an entry
+	     * 
+	     * @public
+	     * @static	     
+	     */				
 		removeImageHash: function(index) {
 			if(primaryIndex == index) {// Check if index to be removed is Primary index, then first image becomes primary
 				primaryIndex = 0;
@@ -314,6 +429,17 @@ var PicManager = function() {
 			}
 			imageHash = imageHash.slice(0, index).concat(imageHash.slice(index + 1));
 		},
+		
+		/**
+	     * Sets the primary index variable and resets the styles for the previous primary
+	     * indexed image 
+	     * 
+	     * @method setPrimary  
+	     * @param {Number} index The indx of the image that has to be made primary
+	     * 
+	     * @public
+	     * @static	     
+	     */						
 		setPrimary: function(index) {
 			if(typeof index != "undefined" && primaryIndex != index) {
 				//Remove primary Class
@@ -321,6 +447,16 @@ var PicManager = function() {
 				primaryIndex = index;
 			}
 		},
+		
+		/**
+	     * Removes the primary styles for the given index
+	     * 
+	     * @method removePrimary  
+	     * @param {Number} index The indx of the image to remove the primary styles
+	     * 
+	     * @public
+	     * @static	     
+	     */						
 		removePrimary: function(index) {
 			// Set index to primary if not passed
 			if(!index) {
@@ -329,6 +465,17 @@ var PicManager = function() {
 			// Remove the primary state from the picture
 			picUploaderHash[index].removePrimary();
 		},
+		
+		/**
+	     * Reflows all the images in the pic manager arena when a delete operation 
+	     * happens. The images which have upload errors are removed from the
+	     * area during this operation
+	     * 
+	     * @method reflow  
+	     * 
+	     * @public
+	     * @static	     
+	     */						
 		reflow: function() {
 			var imgData,
 				i=0, 
@@ -350,6 +497,16 @@ var PicManager = function() {
 			// If there is Image then set Primary
 			startIndex && picUploaderHash[primaryIndex].setPrimary();
 		},
+		
+		/**
+	     * Determines if the browser can support Multi-File upload and AJAX
+	     * based upload
+	     * 
+	     * @method isMultiUploadSupported  
+	     * 
+	     * @public
+	     * @static	     
+	     */								
 		isMultiUploadSupported: function(){
 			var input = document.createElement("input");
 			input.type = "file";

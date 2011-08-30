@@ -1,3 +1,27 @@
+/**
+ * PicUploader is the main engine class for the PicMan application. The class
+ * implements the AJAX based picture uploader and also triggers/controls the
+ * ProgressMeter instance. 
+ * 
+ * The PicUploader uses the HTML5 File API based upload with real time status 
+ * from the XMLHttpRequest upload 'progress' listener in browsers that support 
+ * it and uses iframe single file upload apprach in non-supporting browsers thus 
+ * simulating AJAX. 
+ * 
+ * PicUploader also binds the various events associted with the controls 
+ * dashboard for every image. The operations supported are zoom, making primary
+ * and delete. 
+ * 
+ * In order to provide progess meter feedback even to browsers that doesn't 
+ * support the 'progress' listener the PicUploader requires 2 static values 
+ * (MEDIAN_TIME & MEDIAN_SIZE) to be set. See setailed documentation below.  
+ * 
+ * @class PicUploader
+ * @constructor
+ * @param {Object} dataObj A data object encapsulating all the input paramaters
+ * 						   required for the PicUploader	
+ * 
+ */
 function PicUploader(dataObj){ 
 	/**
 	 * Private static variables 
@@ -64,7 +88,25 @@ function PicUploader(dataObj){
 		errorImage = dataObj.errorImage || PicUploader.ERROR_IMAGE, // Get the error Image to show for upload failures
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
 		thumbnailImage, // Thumbnail image element
-		canvasElem, // Canvas element 
+		canvasElem, // Canvas element 	    
+		/**
+	     * Given a file size returns the time interval to run the progress meter.
+	     * Takes 2 optional parameters rate & percentCompleted to determine the 
+	     * interval accordingly.
+	     * 
+	     * If rate is not provided, the uploadRate is used and the overall percentage
+	     * is targeted at 90%. The last 10% is used for JS activities like setting image 
+	     * soure etc.
+	     * 
+	     * 
+	     * @method getInterval 
+	     * @param {Number} size The size of file that is uploaded
+	     * @param {rate} rate An optional rate for which the interval should be calculated
+	     * @param {percentCompleted} percentCompleted If there is already a percentage the 
+	     * 						     ProgressMeter is completed this parameter can be used to
+	     * 							 specify that  	
+	     * @private
+	     */			
 		getInterval = function(size, rate, percentCompleted) {
 			!rate && (rate = uploadRate);
 			!percentCompleted && (percentCompleted = 0);
@@ -75,6 +117,14 @@ function PicUploader(dataObj){
 			// https://developer.mozilla.org/en/DOM/window.setTimeout#Minimum_delay_and_timeout_nesting
 			return interval < 5? 5: interval;
 		},
+		/**
+	     * Evaluates and returns the content of the given iframe. 
+	     * 
+	     * @method getIframeResponse 
+	     * @param {Object} iframe The iframe DOM element
+	     *   	
+	     * @private
+	     */			
 		getIframeResponse = function(iframe) {
 	        // iframe.contentWindow.document - for IE<7
 	        var doc = iframe.contentDocument ? iframe.contentDocument: iframe.contentWindow.document,
@@ -87,6 +137,15 @@ function PicUploader(dataObj){
 
 	        return response;
 		},
+		/**
+	     * Implements the HTML5 based AJAX file upload  
+	     * 
+	     * @method uploadAJAX 
+	     * @param {Object} fileInfo The object encapsulating the details of the file  
+	     * @param {Function} cb The callback function to call after file is uploaded
+	     * 
+	     * @private
+	     */					
 		uploadAJAX = function(fileInfo, cb) {
 			var xhr = new XMLHttpRequest(),
 				clientUploadDone = 0;
@@ -126,6 +185,15 @@ function PicUploader(dataObj){
 	        xhr.setRequestHeader("Content-Type", "application/octet-stream");	        
 	        xhr.send(fileInfo.file);	        
 		},
+		/**
+	     * Implements the iframe based file upload
+	     * 
+	     * @method uploadIframe 
+	     * @param {Object} fileInfo The object encapsulating the details of the file  
+	     * @param {Function} cb The callback function to call after file is uploaded
+	     * 
+	     * @private
+	     */			
 		uploadIframe = function(fileInfo, cb) {
 			var iframe = u.createIframe(fileInfo.name);
 			!uploadForm && (uploadForm = d[get](uploadFormName)); 
@@ -166,7 +234,14 @@ function PicUploader(dataObj){
 
 		};
 	
-	// Set the file object for this instance	
+	/**
+     * Sets the file object to be uploaded to the local variable
+     * 
+     * @method setFileObj 
+     * @param {Object} file The object encapsulating the details of the file to be uploaded  
+     * 
+     * @public
+     */			
 	this.setFileObj = function(file) {
 		fileObj = file;
 		// If size not available set median size
@@ -174,8 +249,20 @@ function PicUploader(dataObj){
 			fileObj.size = medianSize;
 		}
 	};
+
+	/**
+     * Upload the image file to the back server based on browser compatability
+     * 
+     * @method upload 
+     * @param {Object} file An optional object encapsulating the details of the file to be uploaded          
+     * 						If not provided uses the file set using the setFileObj method or passed
+     * 						in dataObj during creation
+     * @public
+     */		
+	this.upload = function(file) {
 		
-	this.upload = function() {
+		//Set the file object if present
+		file && this.setFileObj(file);
 		
 		var t = this,
 		// Decide upload functionality based on browser support 
@@ -194,7 +281,15 @@ function PicUploader(dataObj){
 			t.handleResponse(res);
 		});
 	};
-	
+
+	/**
+     * Handles the response from the backend server after uploading the image 
+     * 
+     * @method handleResponse 
+     * @param {Object} res The JSON response object from server
+     * 
+     * @public
+     */			
 	this.handleResponse = function(res) {
 		// Get error message if any
 		var err = !res? "No response from server. Try again": res.error,
@@ -209,7 +304,7 @@ function PicUploader(dataObj){
 			// Stop the progress meter
 			progMeter.stop();
 			// Call the final complete to set the state accordingly
-			this.complete(res);
+			this.complete();
 			// Set image loaded state to 0 since this is error scenario
 			imgLoadedState = 0;	
 			// Call the final callback
@@ -229,15 +324,22 @@ function PicUploader(dataObj){
 			// Complete the progress meter with the callback which calls the final complete
 			progMeter.complete(function(r) {
 				return function() {
-							that.complete(r);
+							that.complete();
 							// Call the final callback
 							finalCb && finalCb(index, imgData);
 						};
 				}(res));	
 		}					
 	};
-	
-	this.complete = function(res) {
+
+	/**
+     * Completes the image upload by doing the final wrapup operations  
+     * 
+     * @method complete 
+     * 
+     * @public
+     */		
+	this.complete = function() {
 		
 		// Hide the file name
 		u.hide(fileNameLayer);
@@ -253,6 +355,15 @@ function PicUploader(dataObj){
 		progMeter.progress(0);
 	};
 	
+	/**
+     * Sets the thumbnail and zoom images in their associated containers
+     * Optimized to create a new img element only if not already created 
+     * 
+     * @method setPicture 
+     * @param {Object} imgData Object encapsulating the details of the pciture URLs
+     * 
+     * @public
+     */		
 	this.setPicture = function(imgData) {
 		if(imgData) {
 			// First handle thumbnail image
@@ -277,7 +388,16 @@ function PicUploader(dataObj){
 		// Update the image loaded state
 		imgLoadedState = 1;		
 	};
-	
+
+	/**
+     * Deletes the image by cleaning the wrapper containers of both thumbnail and
+     * zoom images.  
+     * TODO make AJAX call to delete the image from the server
+     * 
+     * @method deleteImage 
+     * 
+     * @public
+     */			
 	this.deleteImage = function() {
 		// Clear the image wrapper
 		u.updateContent(imageWrapper, "");
@@ -294,25 +414,63 @@ function PicUploader(dataObj){
 		// Call the delete callback if present
 		deleteCb &&	deleteCb(index);	 
 	};
-	
+
+
+	/**
+     * Shows the dashboard controls based on image loaded state  
+     * 
+     * @method showControls 
+     * 
+     * @public
+     */		
 	this.showControls = function() {
 		imgLoadedState && imageWrapper.firstChild && u.show(controls);
 	};
-	
+
+	/**
+     * Hides the dashboard controls based on image loaded state  
+     * 
+     * @method hideControls 
+     * 
+     * @public
+     */		
 	this.hideControls = function() {
 		imgLoadedState && imageWrapper.firstChild && u.hide(controls);
 	};
-	
+
+	/**
+     * Shows the enlarged image in an overlay 
+     * 
+     * @method zoomImage 
+     * 
+     * @public
+     */		
 	this.zoomImage = function() {			
 		u.show(maskLayer, 1);
 		u.show(overlay, 1);
 	};
-	
+
+	/**
+     * Closes the zoom image overlay
+     * 
+     * @method closeOverlay 
+     * 
+     * @public
+     */			
 	this.closeOverlay = function() {
 		u.hide(maskLayer, 1);
 		u.hide(overlay, 1);			
 	};
-	
+
+	/**
+     * Makes the image assicated with the instance as primary
+     * The primary callback function takes care of resetting the primary style
+     * in the remaining images
+     * 
+     * @method setPrimary 
+     * 
+     * @public
+     */		
 	this.setPrimary = function() {
 		if(imgLoadedState) {
 			// Set the primary Class and set sttribute
@@ -325,7 +483,14 @@ function PicUploader(dataObj){
 			primaryCb && primaryCb(index);
 		}
 	};
-	
+
+	/**
+     * Removes the primary styling from the image assicated with the instance
+     * 
+     * @method removePrimary 
+     * 
+     * @public
+     */			
 	this.removePrimary = function() {
 		//Remove primary Class
 		u.removeClass(imageWrapper, "primary");
@@ -334,7 +499,14 @@ function PicUploader(dataObj){
 		// Show the primary control
 		u.show(d[get](primaryControl), 1);					
 	};
-	
+
+	/**
+     * Returns true|1 if the instance is the primary image 
+     * 
+     * @method isPrimary 
+     * 
+     * @public
+     */		
 	this.isPrimary = function() {
 		return isPrimary;
 	};
