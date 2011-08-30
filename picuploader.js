@@ -87,8 +87,7 @@ function PicUploader(dataObj){
 		serverURL = dataObj.serverURL || PicUploader.SERVER_URL, // Get the server URL for uploading the picture
 		errorImage = dataObj.errorImage || PicUploader.ERROR_IMAGE, // Get the error Image to show for upload failures
 		progMeter = new ProgressMeter({progressLayer: dataObj.progressLayer, percentLayer: dataObj.percentLayer}), // creating Progress Meter Object instance
-		thumbnailImage, // Thumbnail image element
-		canvasElem, // Canvas element 	    
+		thumbnailImage, // Thumbnail image element 	    
 		/**
 	     * Given a file size returns the time interval to run the progress meter.
 	     * Takes 2 optional parameters rate & percentCompleted to determine the 
@@ -316,11 +315,7 @@ function PicUploader(dataObj){
 			// Hide the display to preserve the dimensions
 			u.hide(imageWrapper, 1);
 			// Set the thumbnail picture
-			this.setPicture(imgData);
-			
-			// Create the canvas element
-			//(canvasElem = document.createElement("canvas")) && imageWrapper.appendChild(canvasElem);				
-		
+			this.setPicture(imgData);		
 			// Complete the progress meter with the callback which calls the final complete
 			progMeter.complete(function(r) {
 				return function() {
@@ -466,6 +461,8 @@ function PicUploader(dataObj){
      * Makes the image assicated with the instance as primary
      * The primary callback function takes care of resetting the primary style
      * in the remaining images
+     * 
+     * TODO make AJAX call to server and make the image primary
      * 
      * @method setPrimary 
      * 
