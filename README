@@ -21,7 +21,7 @@ JavaScript:
 -----------
 1. utils.js - A JS utility class with helper functions used across all APIs
 2. progressmeter.js - Creates a dynamic progress bar in the page working with
-					  DOM and Styles 
+                      DOM and Styles 
 3. picuploader.js - The main engine class which does the actual image uploading
 4. picmanager.js - The singleton manager class for the PicMan application
 
