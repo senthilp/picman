@@ -28,29 +28,29 @@ JavaScript:
 CSS:
 ----
 1. picman.css - Styles the entire picman playing arena including picture holders
-				and progress meter 
+                and progress meter 
 
 HTML (markup):
 --------------
 1. arena.php - Builds the HTML (markup) for the PicMan arena. The PHP variable
-	          $PIC_COUNT controls the number of image containers to show in 
-	          the application
+               $PIC_COUNT controls the number of image containers to show in 
+               the application
 
 Server (Backend):
 -----------------
 1. eBayApi.php - The eBay API PHP wrapper to make the HTTP webservice call using
 		         CURL and SimpleXML extensions
 2. upload.php - The AJAX controller command which processes the request (image 
-				data) based on upload type (XHR upload or iframe), validates and 
-				calls the eBay public API UploadSiteHostedPictures to upload the 
-				image and sends back the response as a serialized JSON string.
-				NOTE: The eBay API credentials should be set in the variables
-				$devID, $appID, $certID, $userToken in order for the API to work
+                data) based on upload type (XHR upload or iframe), validates and 
+                calls the eBay public API UploadSiteHostedPictures to upload the 
+                image and sends back the response as a serialized JSON string.
+                NOTE: The eBay API credentials should be set in the variables
+                $devID, $appID, $certID, $userToken in order for the API to work
 
 Image:
 ------ 
 1. image_edit_icons-v2.gif - A google sprite image containing all the icons for 
-							 the image control dashboard (zoom & delete)
+                             the image control dashboard (zoom & delete)
 							  
 
 Invoking the PicMan app is done by calling the PicManager as shown below
@@ -99,5 +99,5 @@ the steps listed below
    $certID, $userToken and replace them with eBay developer credentails
 4. Restart Apache and hit http://localhost/picman/arena.php in browser. Wallah!
    the picman application should be up and running
-5. If there any eBay API issues please refer to  http://developer.ebay.com/DevZone/XML/docs/Reference/eBay/UploadSiteHostedPictures.html
-   for trouble shooting
+5. If there any eBay API issues please refer to the below URL for trouble shooting 
+   http://developer.ebay.com/DevZone/XML/docs/Reference/eBay/UploadSiteHostedPictures.html
