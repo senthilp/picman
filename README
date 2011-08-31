@@ -1,2 +1,103 @@
-TODO
-1. Documentation
+-------------------------------------------------------------------------------
+ About
+-------------------------------------------------------------------------------
+
+PicMan (Picture Manager) application is a JavaScript based picture uploader
+utility which leverages HTML5 filelist API and provides a real time upload
+progress meter. As a fallback mechanism to browsers that does not support 
+HTML5 features, the app uses the legacy iframe based upload approach thus
+simulating an AJAX behavior. 
+
+At the backend the app uses the eBay public API to upload pictures. The  
+operation is called UploadSiteHostedPictures, which provides numerous picture 
+upload options and returns a set of image URLs supporting different dimensions 
+with appropriate HTT headers. The entire documentation is available at
+http://developer.ebay.com/DevZone/XML/docs/Reference/eBay/UploadSiteHostedPictures.html
+
+The JS APIs in the application are well documented for reference and given 
+below is the complete source file inventory explaining the various components
+
+JavaScript:
+-----------
+1. utils.js - A JS utility class with helper functions used across all APIs
+2. progressmeter.js - Creates a dynamic progress bar in the page working with
+					  DOM and Styles 
+3. picuploader.js - The main engine class which does the actual image uploading
+4. picmanager.js - The singleton manager class for the PicMan application
+
+CSS:
+----
+1. picman.css - Styles the entire picman playing arena including picture holders
+				and progress meter 
+
+HTML (markup):
+--------------
+1. arena.php - Builds the HTML (markup) for the PicMan arena. The PHP variable
+	          $PIC_COUNT controls the number of image containers to show in 
+	          the application
+
+Server (Backend):
+-----------------
+1. eBayApi.php - The eBay API PHP wrapper to make the HTTP webservice call using
+		         CURL and SimpleXML extensions
+2. upload.php - The AJAX controller command which processes the request (image 
+				data) based on upload type (XHR upload or iframe), validates and 
+				calls the eBay public API UploadSiteHostedPictures to upload the 
+				image and sends back the response as a serialized JSON string.
+				NOTE: The eBay API credentials should be set in the variables
+				$devID, $appID, $certID, $userToken in order for the API to work
+
+Image:
+------ 
+1. image_edit_icons-v2.gif - A google sprite image containing all the icons for 
+							 the image control dashboard (zoom & delete)
+							  
+
+Invoking the PicMan app is done by calling the PicManager as shown below
+PicManager.init({
+	MAX_LIMIT: 8, // Total number of pic placeholders 
+	uploadForm: "file_upload_form", // Form element ID which contains the HTML file element
+	file: "picfile", // HTML file element ID
+	maskLayer: "mask", // The mask div element ID which creates a background mask during zoom and when upload is progressing 
+	addPicLayer: "add", // The div element id which contains the Add Picture link and HTML file element 
+	serverURL: "upload.php", // The AJAX server URL
+	errorImage: "no-pic-error.png", // Error image URL displayed when an error occurs during upload
+	dropBox: "dropBox", // The Div element ID of the drop box for drag & drop
+	dropText: "dropText", // The Div element ID wrapping the text mentioning the feature supports drag & drop
+	imageHash: null, // An array of image info objects, default null but when already uploaded images the object is set
+		 			 // Format: [{thumbnailUrl: "http://xyz", mainUrl: "http://abc"}]
+	primaryIndex: 0, // The index of the image which should be made primary, default 0
+	startIndex: 0, // The start index in the arena, default 0 but when already uploaded images the index is set accordingly
+	// Below attributes are associated with every image and all IDs are indexed from 0
+	// For e.g. the pic container div ID at first location will be picContainer0 and so on
+	image: { 
+		picContainer: "picContainer", // The container Div element ID of a picture
+		fileNameLayer: "fileName", // The Div element ID in the pic container which holds the file name
+		progressMeterLayer: "progressMeter", // The Div element ID which holds the progress meter elements				
+		progressLayer: "progress", // The inner Div element ID of the progress meter which shows progress
+		percentLayer: "percentage", // The Div element ID showing the progress percentage
+		imageWrapper: "imageWrapper", // The Div element ID wrapping the thumbnail image
+		controlsLayer: "controls", // The Div element ID which contains the dashboard controls
+		overlayLayer: "overlay",// The Div element ID of the overlay for zooming an image
+		zoomLayer: "enlarge", // The Div element ID wrapping the zoom image				
+		closeZoomLink: "closeZoomLink", // The anchor ID for the close link in overlay
+		zoomControl: "zoom", // The Div element ID for the zoom control
+		primaryControl: "primary", // The Div element ID for the make primary image control
+		deleteControl: "delete" // The Div element ID for the delete image control
+	}		
+});
+
+Deployment of the PicMan application is pretty straightforward. Please follow
+the steps listed below
+1. Register in http://developer.ebay.com/ to get access to eBay public APIs.
+   The registration process will generate the following credentials Developer
+   Id, Application Id, Certificate Id and a eBay user token
+2. Create a directory picman (any name should be ok) in Apache webroot and
+   download all the source files from https://github.com/senthilp/picman and dump
+   it into the directory
+3. Edit the file upload.php and change the values of the variables $devID, $appID, 
+   $certID, $userToken and replace them with eBay developer credentails
+4. Restart Apache and hit http://localhost/picman/arena.php in browser. Wallah!
+   the picman application should be up and running
+5. If there any eBay API issues please refer to  http://developer.ebay.com/DevZone/XML/docs/Reference/eBay/UploadSiteHostedPictures.html
+   for trouble shooting
