@@ -39,7 +39,7 @@ HTML (markup):
 Server (Backend):
 -----------------
 1. eBayApi.php - The eBay API PHP wrapper to make the HTTP webservice call using
-		         CURL and SimpleXML extensions
+                 CURL and SimpleXML extensions
 2. upload.php - The AJAX controller command which processes the request (image 
                 data) based on upload type (XHR upload or iframe), validates and 
                 calls the eBay public API UploadSiteHostedPictures to upload the 
@@ -54,6 +54,7 @@ Image:
 							  
 
 Invoking the PicMan app is done by calling the PicManager as shown below
+/*************************************************************************************************************/
 PicManager.init({
 	MAX_LIMIT: 8, // Total number of pic placeholders 
 	uploadForm: "file_upload_form", // Form element ID which contains the HTML file element
@@ -86,6 +87,7 @@ PicManager.init({
 		deleteControl: "delete" // The Div element ID for the delete image control
 	}		
 });
+/*************************************************************************************************************/
 
 Deployment of the PicMan application is pretty straightforward. Please follow
 the steps listed below
