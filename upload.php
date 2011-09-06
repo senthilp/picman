@@ -91,11 +91,15 @@ if ($fileObj) {  // file was send from browser
 	    $multiPartImageData = $fileObj->getBinary(); // do a binary read of image
 		
         // Credentials for eBay image upload API
-        $devID = 'pcarad';
-	    $appID = 'CARadd873-f513-4d4e-9805-a1772cf489f';
-	    $certID = '322f701e-99fe-44ca-97fb-f35cee1f65bb';
+        // Register in http://developer.ebay.com/ to get access to eBay public APIs
+        // The registration process will generate the following credentials - Developer
+        // Id, Application Id, Certificate Id and a eBay user token. Please use those
+        // values below
+        $devID = '<Your eBay developer Id>';
+	    $appID = '<Your eBay App Id>';
+	    $certID = '<Your eBay cert Id>';
 	    //the token representing the eBay user to assign the call with
-	    $userToken = 'AgAAAA**AQAAAA**aAAAAA**eDzSSw**nY+sHZ2PrBmdj6wVnY+sEZ2PrA2dj6wFk4SgDpOKowudj6x9nY+seQ**njAAAA**AAMAAA**7VZu6QOCEj2paeYG5T/rk+7xqvOTd0IktqTOGbLCbJXKJl/3sc3KgrO5qCymRybVztgtvUIIKj6DCDJw6y3813znxXuRVzM7UKYGFh2Fr/hnPaPbkcPc72dK/UeIy/MJLanYEuBVYvpvOD69AMGHwuwMewGQ2h/WdgS20miOfkU5pOfjK+7CO2Rq/kI7I8zI9U6B/ziEkgam5ceYoO8Ry25RDDTivHThSiW7IrOo+a7j6X2CPnCdqRWAXzfs3Bsy/FgjCAGs1TDuJ7ZSESW34FdMTqAbLqRm3Sfm+swKeePQ37ya9+/SUtXBCveskR098WoIRovHjuIYusnf9tKCzkQt0+tD8q2SWv8BB9o1CqUw7o7wh0lhbak6PnGLBlY6HVLI9FYiSmH9XsO20fCTzXbZ/+Ls+hJ70WT+0SdUU255CDkNf8kzxG79s1A+BnUrDCoYDy2tlyEB/A5zBz9Z7dKjII42tdUw0nUS1+vf3YVKTLSbtCeDivcFBeQWBgIkM/T3uc+LTER340oZJXCqyUQVFO75NTnSufT05/mZWjNQNQhtlpJimtsq9v2zfCcwuWK14l9oQ0jE/JWp4YzWZKhfjOfUtZ0hsO7+VdFE8EBbTqkqYtbwOJXRDyIF/EDerS3WobitExI6uT2DzSKgJSDp7TXnUSSd0LnuTL9N2kkGFJAjuh4u4+Mr+0iArrRL/8/FlNKcDaBngaCgjX5GhbC5CPcYLoDJwAmMy5biIvu7md2+qP9R/Asm0ek+V6uQ';
+	    $userToken = '<Your eBay user token>';
 	
 	    $siteID  = 0;                            // siteID needed in request - US=0, UK=3, DE=77...
 	    $verb    = 'UploadSiteHostedPictures';   // the call being made:

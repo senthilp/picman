@@ -92,7 +92,7 @@ PicManager.init({
 Deployment of the PicMan application is pretty straightforward. Please follow
 the steps listed below
 1. Register in http://developer.ebay.com/ to get access to eBay public APIs.
-   The registration process will generate the following credentials Developer
+   The registration process will generate the following credentials - Developer
    Id, Application Id, Certificate Id and a eBay user token
 2. Create a directory picman (any name should be ok) in Apache webroot and
    download all the source files from https://github.com/senthilp/picman and dump
