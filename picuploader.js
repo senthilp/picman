@@ -542,14 +542,14 @@ PicUploader.ERROR_IMAGE = "no-pic-error.png";
  * The more close to reality the value is the more acurate the progress
  * meter will function
  * 
- * Current value based on historic data is ~4MB 4046357 bytes, should be
+ * Current value based on historic data is ~4MB 4179456 bytes, should be
  * overriden at application level as needed
  *
  * @property MEDIAN_SIZE
  * @static 
  * @public
  */	
-PicUploader.MEDIAN_SIZE = 4046357;
+PicUploader.MEDIAN_SIZE = 4179456;
 
 /**
  * MEDIAN_TIME property denotes median time taken to uplod 1 image of MEDIAN_SIZE
@@ -559,7 +559,7 @@ PicUploader.MEDIAN_SIZE = 4046357;
  * The more close to reality the value is the more acurate the progress
  * meter will function
  * 
- * Current value based on local server date is 12000 milliseconds for MEDIAN_SIZE, 
+ * Current value based on local server date is 11295 milliseconds for MEDIAN_SIZE, 
  * Should be overriden at application level as needed
  *
  * @property MEDIAN_TIME
@@ -567,7 +567,7 @@ PicUploader.MEDIAN_SIZE = 4046357;
  * @static 
  * @public
  */	
-PicUploader.MEDIAN_TIME = 12000;
+PicUploader.MEDIAN_TIME = 11295;
 
 /**
  * Uploading an image to server has 2 parts
