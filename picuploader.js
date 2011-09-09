@@ -559,7 +559,7 @@ PicUploader.MEDIAN_SIZE = 4179456;
  * The more close to reality the value is the more acurate the progress
  * meter will function
  * 
- * Current value based on local server date is 11295 milliseconds for MEDIAN_SIZE, 
+ * Current value based on historic data is 11295 milliseconds for MEDIAN_SIZE, 
  * Should be overriden at application level as needed
  *
  * @property MEDIAN_TIME
@@ -583,12 +583,12 @@ PicUploader.MEDIAN_TIME = 11295;
  * 
  * *** SERVER_TIME SHOULD BE CALCULATED BASED ON MEDIAN_SIZE ***
  *
- * With a local setup the server time was about 80% (9600 milliseconds), but in real 
- * time the ratio will be different. 
+ * Current value based on historic data is 7000 milliseconds for MEDIAN_SIZE
+ * Should be overriden at application level as needed
  * 
  * @property SERVER_TIME
  * @override
  * @static 
  * @public
  */	
-PicUploader.SERVER_TIME = 9600;
+PicUploader.SERVER_TIME = 7000;
