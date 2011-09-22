@@ -55,7 +55,7 @@ function ProgressMeter(dataObj) {
 				// Call the finalComplete method
 				finalComplete();
 			}
-		}, progressInterval);
+		}, pi);
 	};
 
     /**

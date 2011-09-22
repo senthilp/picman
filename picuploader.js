@@ -220,7 +220,8 @@ function PicUploader(dataObj){
 	            cb(getIframeResponse(iframe));
 	            
 	            // Delete the iframe with a timeout to fix busy state in FF3.6
-	            setTimeout(function(){
+	            var timeout = setTimeout(function(){
+	            	clearTimeout(timeout);
 	            	iframe.parentNode.removeChild(iframe);
 	            }, 1);
 			});
