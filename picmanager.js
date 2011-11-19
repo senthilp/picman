@@ -208,7 +208,8 @@ var PicManager = function() {
 			// Attach the drop event
 			u.attach(elem, "drop", drop);
 			u.attach(elem, "dragdrop", drop); // For FF < 3.5
-			// Attache drop event to mask layer to avoid browser behaviour
+			
+			// Attache drag and drop events to mask layer to avoid browser behaviour
 			u.attach(maskLayer, "dragenter", noOpHandler);
 			u.attach(maskLayer, "dragleave", noOpHandler); 
 			u.attach(maskLayer, "dragexit", noOpHandler); // For FF < 3.5
