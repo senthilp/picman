@@ -208,6 +208,13 @@ var PicManager = function() {
 			// Attach the drop event
 			u.attach(elem, "drop", drop);
 			u.attach(elem, "dragdrop", drop); // For FF < 3.5
+			// Attache drop event to mask layer to avoid browser behaviour
+			u.attach(maskLayer, "dragenter", noOpHandler);
+			u.attach(maskLayer, "dragleave", noOpHandler); 
+			u.attach(maskLayer, "dragexit", noOpHandler); // For FF < 3.5
+			u.attach(maskLayer, "dragover", noOpHandler);						
+			u.attach(maskLayer, "drop", noOpHandler);
+			u.attach(maskLayer, "dragdrop", noOpHandler); // For FF < 3.5			
 		},
 		/**
 	     * Check if any of the uploaded image is a primary image and if so apply 
@@ -350,7 +357,7 @@ var PicManager = function() {
 				}
 			}
 			// Set primary flag to image wrapper
-			startIndex && picUploaderHash[primaryIndex].setPrimary();
+			startIndex && picUploaderHash[primaryIndex].setPrimary();			
 		},
 		
 		/**
