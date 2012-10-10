@@ -27,9 +27,13 @@ h1 {
 }
 .dropbox {			
 	border-radius: 2px 2px 2px 2px;
-	height: 360px;
 	margin-top: 20px;    			
-	padding: 20px 0 0 60px;
+	padding: 20px 0 40px 60px;
+}
+.dropbox:after {
+	clear: both;
+	display: table;
+	content: "";
 }
 .droptext {
 	display: none;
